@@ -167,10 +167,11 @@ st.map(df_mapa.rename(columns={
 # =========================
 st.subheader("📋 Resumo da Operação")
 
-df_resumo = df.sort_values("Data_Hora").drop_duplicates(
-    subset="Placa",
-    keep="last"
-)[["Placa", "Motoristas","Data_Hora", "Data"]]
+df_ordenado = df.sort_values("Data_Hora")
+
+df_resumo = df_ordenado.loc[
+    df_ordenado.groupby("Placa")["Data_Hora"].idxmax()
+][["Placa", "Motoristas", "Data_Hora", "Data"]]
 
 df_resumo = df_resumo.rename(columns={
     "Motoristas": "Motorista",
