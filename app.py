@@ -33,18 +33,35 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
-# 🔽 FILTRANDO SOMENTE AS COLUNAS NECESSÁRIAS
-colunas_desejadas = [
+# 🧠 Coluna derivada
+df["Tipo"] = df["Proprietário"].apply(
+    lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
+)
+
+# 🔽 Seleção de colunas
+colunas_finais = [
     "Placa",
-    "Proprietário",
+    "Tipo",
     "Data de comunicação",
     "Latitude",
     "Longitude"
 ]
 
-# Mantém só as colunas que existem no dataset (evita erro)
-df = df[[col for col in colunas_desejadas if col in df.columns]]
+df = df[[col for col in colunas_finais if col in df.columns]]
 
-st.title("🚛 Base Omni - Filtrada")
+# 🎛️ FILTRO NA SIDEBAR
+st.sidebar.title("Filtros")
 
-st.dataframe(df)
+tipo_selecionado = st.sidebar.multiselect(
+    "Tipo",
+    options=df["Tipo"].unique(),
+    default=df["Tipo"].unique()
+)
+
+# Aplicando filtro
+df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
+
+# 📊 Exibição
+st.title("🚛 Base Omni - Operacional")
+
+st.dataframe(df_filtrado)
