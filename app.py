@@ -162,3 +162,19 @@ st.map(df_mapa.rename(columns={
     "Latitude_tratada": "lat",
     "Longitude_tratada": "lon"
 }))
+# =========================
+# 📊 TABELA RESUMIDA
+# =========================
+st.subheader("📋 Resumo da Operação")
+
+df_resumo = df.sort_values("Data_Hora").drop_duplicates(
+    subset="Placa",
+    keep="last"
+)[["Placa", "Motoristas", "PV"]]
+
+df_resumo = df_resumo.rename(columns={
+    "Motoristas": "Motorista",
+    "PV": "Programação"
+})
+
+st.dataframe(df_resumo)
