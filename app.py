@@ -27,7 +27,7 @@ def carregar_etl():
     blob = bucket.blob("etl/tabela_painel.csv")
 
     content = blob.download_as_bytes()
-    df = pd.read_csv(BytesIO(content))
+    df = pd.read_csv(BytesIO(content), encoding="latin1")
 
     # 🔥 TRATAMENTO DATA_HORA
     if "Data_Hora" in df.columns:
