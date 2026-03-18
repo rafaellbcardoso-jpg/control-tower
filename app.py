@@ -57,10 +57,8 @@ df = pd.concat(dfs, ignore_index=True)
 # =========================
 df.columns = df.columns.str.strip()
 
-df["Data de comunicação"] = pd.to_datetime(
-    df["Data de comunicação"],
-    errors="coerce"
-)
+# NÃO CONVERTER DATA (mantém original)
+# df["Data de comunicação"] = pd.to_datetime(...)
 
 df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
 df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
