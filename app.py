@@ -57,6 +57,13 @@ df = carregar_etl()
 st.success("Dados carregados com sucesso")
 
 # =========================
+# 🚛 TIPO DE FROTA
+# =========================
+df["Tipo_Frota"] = df["Proprietario"].apply(
+    lambda x: "Frota" if str(x).strip().lower() == "lemar" else "Agregado"
+)
+
+# =========================
 # 📅 FILTRO DE DATA
 # =========================
 st.subheader("📅 Filtro de Data")
@@ -76,8 +83,24 @@ df = df[
     (df["Data_Hora"].dt.date <= data_fim)
 ]
 
+# =========================
+# 🚛 FILTRO LATERAL
+# =========================
+st.sidebar.subheader("🚛 Tipo de Frota")
+
+tipo_frota = st.sidebar.multiselect(
+    "Selecione",
+    options=df["Tipo_Frota"].unique(),
+    default=df["Tipo_Frota"].unique()
+)
+
+df = df[df["Tipo_Frota"].isin(tipo_frota)]
+
+# =========================
+# VALIDAÇÃO
+# =========================
 if df.empty:
-    st.warning("Nenhum dado encontrado para o período selecionado")
+    st.warning("Nenhum dado encontrado com os filtros aplicados")
     st.stop()
 
 # =========================
