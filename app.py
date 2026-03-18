@@ -20,10 +20,21 @@ credentials = service_account.Credentials.from_service_account_info(
 def carregar_omni():
     client = storage.Client(credentials=credentials, project="paine-stramlit")
     bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob("etl/omni.csv")
 
-    content = blob.download_as_bytes()
-    df = pd.read_csv(BytesIO(content))
+    blobs = list(bucket.list_blobs(prefix="omnilink/"))
+
+    dfs = []
+    for blob in blobs:
+        if blob.name.endswith(".csv"):
+            content = blob.download_as_bytes()
+            df_temp = pd.read_csv(BytesIO(content))
+            dfs.append(df_temp)
+
+    if not dfs:
+        st.error("Nenhum arquivo encontrado em omnilink/")
+        st.stop()
+
+    df = pd.concat(dfs, ignore_index=True)
 
     if "Data_Hora" in df.columns:
         df["Data_Hora"] = (
@@ -40,10 +51,21 @@ def carregar_omni():
 def carregar_robo():
     client = storage.Client(credentials=credentials, project="paine-stramlit")
     bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob("etl/robo.csv")
 
-    content = blob.download_as_bytes()
-    df = pd.read_csv(BytesIO(content))
+    blobs = list(bucket.list_blobs(prefix="robo/"))
+
+    dfs = []
+    for blob in blobs:
+        if blob.name.endswith(".csv"):
+            content = blob.download_as_bytes()
+            df_temp = pd.read_csv(BytesIO(content))
+            dfs.append(df_temp)
+
+    if not dfs:
+        st.error("Nenhum arquivo encontrado em robo/")
+        st.stop()
+
+    df = pd.concat(dfs, ignore_index=True)
 
     if "Data" in df.columns:
         df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
