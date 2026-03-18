@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from google.cloud import storage
+from google.oauth2 import service_account
 from io import BytesIO
 
 # =========================
@@ -8,9 +9,14 @@ from io import BytesIO
 # =========================
 BUCKET_NAME = "control-tower-dados"
 
+# 🔐 pega credencial do Streamlit Secrets
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["google"]
+)
+
 @st.cache_data
 def carregar_etl():
-    client = storage.Client()
+    client = storage.Client(credentials=credentials)
     bucket = client.bucket(BUCKET_NAME)
 
     blob = bucket.blob("etl/tabela_painel.csv")
