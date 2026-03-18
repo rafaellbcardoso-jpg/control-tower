@@ -14,33 +14,39 @@ credentials = service_account.Credentials.from_service_account_info(
 )
 
 # =========================
-# FUNÇÃO ETL
+# FUNÇÕES DE CARGA
 # =========================
 @st.cache_data
-def carregar_etl():
-    client = storage.Client(
-        credentials=credentials,
-        project="paine-stramlit"
-    )
-
+def carregar_omni():
+    client = storage.Client(credentials=credentials, project="paine-stramlit")
     bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob("etl/tabela_painel.csv")
+    blob = bucket.blob("etl/omni.csv")
 
     content = blob.download_as_bytes()
     df = pd.read_csv(BytesIO(content))
 
-    # 🔥 TRATAMENTO DATA_HORA
     if "Data_Hora" in df.columns:
         df["Data_Hora"] = (
             df["Data_Hora"]
             .astype(str)
             .str[4:24]
         )
+        df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
 
-        df["Data_Hora"] = pd.to_datetime(
-            df["Data_Hora"],
-            errors="coerce"
-        )
+    return df
+
+
+@st.cache_data
+def carregar_robo():
+    client = storage.Client(credentials=credentials, project="paine-stramlit")
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob("etl/robo.csv")
+
+    content = blob.download_as_bytes()
+    df = pd.read_csv(BytesIO(content))
+
+    if "Data" in df.columns:
+        df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
 
     return df
 
@@ -52,14 +58,15 @@ st.set_page_config(layout="wide")
 
 st.title("🚛 Control Tower - Operação")
 
-df = carregar_etl()
+df_omni = carregar_omni()
+df_robo = carregar_robo()
 
-st.success("Dados carregados com sucesso")
+st.success("Bases carregadas com sucesso")
 
 # =========================
-# 🚛 TIPO DE FROTA
+# 🚛 TIPO DE FROTA (mantido do robo)
 # =========================
-df["Tipo_Frota"] = df["Proprietário"].apply(
+df_robo["Tipo_Frota"] = df_robo["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().lower() == "lemar" else "Agregado"
 )
 
@@ -68,12 +75,7 @@ df["Tipo_Frota"] = df["Proprietário"].apply(
 # =========================
 from datetime import datetime, timedelta
 
-# =========================
-# 📅 FILTRO DE DATA (SIDEBAR)
-# =========================
 st.sidebar.subheader("📅 Período")
-
-df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
 
 hoje = datetime.today().date()
 ontem = hoje - timedelta(days=1)
@@ -83,58 +85,71 @@ data_inicio, data_fim = st.sidebar.date_input(
     [ontem, hoje]
 )
 
-df = df[
-    (df["Data_Hora"].dt.date >= data_inicio) &
-    (df["Data_Hora"].dt.date <= data_fim)
+df_omni = df_omni[
+    (df_omni["Data_Hora"].dt.date >= data_inicio) &
+    (df_omni["Data_Hora"].dt.date <= data_fim)
+]
+
+df_robo = df_robo[
+    (df_robo["Data"].dt.date >= data_inicio) &
+    (df_robo["Data"].dt.date <= data_fim)
 ]
 
 # =========================
-# 🚛 FILTRO LATERAL
+# 🚛 FILTRO FROTA
 # =========================
 st.sidebar.subheader("🚛 Tipo de Frota")
 
 tipo_frota = st.sidebar.multiselect(
     "Selecione",
-    options=df["Tipo_Frota"].unique(),
-    default=df["Tipo_Frota"].unique()
+    options=df_robo["Tipo_Frota"].unique(),
+    default=df_robo["Tipo_Frota"].unique()
 )
 
-df = df[df["Tipo_Frota"].isin(tipo_frota)]
+df_robo = df_robo[df_robo["Tipo_Frota"].isin(tipo_frota)]
 
 # =========================
-# 🚛 ÚLTIMA POSIÇÃO POR PLACA (MOVIDO PRA CÁ)
+# 🌎 TRATAMENTO LAT/LONG (SÓ OMNI)
 # =========================
-df = df.sort_values("Data_Hora")
+def corrigir_coordenada(valor):
+    try:
+        valor = str(valor)
+        if valor.count('.') > 1:
+            partes = valor.split('.')
+            valor = partes[0] + '.' + ''.join(partes[1:])
+        return float(valor)
+    except:
+        return None
 
-df = df.drop_duplicates(
+df_omni["Latitude_tratada"] = df_omni["Latitude"].apply(corrigir_coordenada)
+df_omni["Longitude_tratada"] = df_omni["Longitude"].apply(corrigir_coordenada)
+
+# =========================
+# 🔵 POSIÇÃO (OMNI)
+# =========================
+df_posicao = df_omni.sort_values("Data_Hora").drop_duplicates(
     subset="Placa",
     keep="last"
 )
 
 # =========================
-# 🌎 TRATAMENTO LAT/LONG
+# 🟢 PROGRAMAÇÃO (ROBO)
 # =========================
+df_programacao = df_robo.sort_values("Data").drop_duplicates(
+    subset="Placa",
+    keep="last"
+)
 
-def corrigir_coordenada(valor):
-    try:
-        valor = str(valor)
+# =========================
+# 🔗 JOIN
+# =========================
+df_final = df_posicao.merge(df_programacao, on="Placa", how="left")
 
-        if valor.count('.') > 1:
-            partes = valor.split('.')
-            valor = partes[0] + '.' + ''.join(partes[1:])
-
-        return float(valor)
-    except:
-        return None
-
-
-df["Latitude_tratada"] = df["Latitude"].apply(corrigir_coordenada)
-df["Longitude_tratada"] = df["Longitude"].apply(corrigir_coordenada)
 # =========================
 # VALIDAÇÃO
 # =========================
-if df.empty:
-    st.warning("Nenhum dado encontrado com os filtros aplicados")
+if df_final.empty:
+    st.warning("Nenhum dado encontrado")
     st.stop()
 
 # =========================
@@ -142,46 +157,14 @@ if df.empty:
 # =========================
 col1, col2 = st.columns(2)
 
-col1.metric("Total de Registros", len(df))
-col2.metric("Placas únicas", df["Placa"].nunique())
+col1.metric("Total de Veículos", len(df_final))
+col2.metric("Placas únicas", df_final["Placa"].nunique())
 
 # =========================
-# 📊 RESUMO ESTILO BI
+# 📊 TABELA FINAL
 # =========================
 st.subheader("📋 Resumo da Operação")
 
-# -------------------------
-# 🔵 POSIÇÃO (OMNI)
-# -------------------------
-df_posicao = df.sort_values("Data_Hora").drop_duplicates(
-    subset="Placa",
-    keep="last"
-)[["Placa", "Latitude_tratada", "Longitude_tratada"]]
-
-# -------------------------
-# 🟢 PROGRAMAÇÃO (ROBO)
-# -------------------------
-df_programacao = df.sort_values("Data").drop_duplicates(
-    subset="Placa",
-    keep="last"
-)[[
-    "Placa",
-    "Motoristas",
-    "PV",
-    "Data",
-    "Rotas",
-    "Status",
-    "ETA_2"
-]]
-
-# -------------------------
-# 🔗 JOIN
-# -------------------------
-df_final = df_posicao.merge(df_programacao, on="Placa", how="left")
-
-# -------------------------
-# 🧾 AJUSTE FINAL
-# -------------------------
 df_final = df_final.rename(columns={
     "Placa": "Cavalo",
     "Motoristas": "Motorista",
@@ -193,20 +176,15 @@ df_final = df_final.rename(columns={
 })
 
 st.dataframe(df_final)
+
 # =========================
-# 📊 TABELA RESUMIDA
+# 🗺️ MAPA (mantido)
 # =========================
-st.subheader("📋 Resumo da Operação")
+st.subheader("🗺️ Mapa dos Veículos")
 
-df_ordenado = df.sort_values("Data_Hora")
+df_mapa = df_final.dropna(subset=["Latitude_tratada", "Longitude_tratada"])
 
-df_resumo = df_ordenado.loc[
-    df_ordenado.groupby("Placa")["Data_Hora"].idxmax()
-][["Placa", "Motoristas", "Data_Hora", "Data"]]
-
-df_resumo = df_resumo.rename(columns={
-    "Motoristas": "Motorista",
-    "Data_Hora": "Posicionamento"
-})
-
-st.dataframe(df_resumo)
+st.map(df_mapa.rename(columns={
+    "Latitude_tratada": "lat",
+    "Longitude_tratada": "lon"
+}))
