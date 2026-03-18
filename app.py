@@ -21,7 +21,7 @@ client = storage.Client(
 bucket = client.bucket(BUCKET_NAME)
 
 # =========================
-# FUNÇÃO CORREÇÃO
+# FUNÇÃO CORREÇÃO LAT/LONG
 # =========================
 def corrigir_coordenada(valor):
     try:
@@ -53,30 +53,28 @@ if not dfs:
 df = pd.concat(dfs, ignore_index=True)
 
 # =========================
-# GARANTE NOME DAS COLUNAS
+# TRATAR COLUNAS
 # =========================
 df.columns = df.columns.str.strip()
 
-if "Data_Hora" in df.columns:
-    df["Data_Hora"] = (
-        df["Data_Hora"]
-        .astype(str)
-        .str[4:24]
-    )
-    df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
-else:
-    st.error(f"Coluna Data_Hora não encontrada. Colunas disponíveis: {list(df.columns)}")
-    st.stop()
+df["Data de comunicação"] = pd.to_datetime(
+    df["Data de comunicação"],
+    errors="coerce"
+)
 
-# =========================
-# TRATAR LAT/LONG
-# =========================
 df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
 df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
+
+# =========================
+# SELEÇÃO FINAL
+# =========================
+df_final = df[
+    ["Placa", "Proprietário", "Data de comunicação", "Latitude", "Longitude"]
+]
 
 # =========================
 # EXIBIR
 # =========================
 st.title("🚛 Base Omni")
 
-st.dataframe(df)
+st.dataframe(df_final)
