@@ -29,6 +29,10 @@ dfs = []
 for blob in blobs:
     if blob.name.endswith(".csv"):
         content = blob.download_as_bytes()
+
+        # 🔥 DEBUG AQUI
+        st.write(blob.name)
+        st.write(content[:500])
         try:
             df_temp = pd.read_csv(BytesIO(content), sep=";", encoding="latin1")
         except:
