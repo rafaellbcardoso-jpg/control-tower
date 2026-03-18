@@ -85,7 +85,7 @@ df["Data de comunicação"] = pd.to_datetime(df["Data de comunicação"], errors
 df = df.sort_values("Data de comunicação", ascending=False)
 
 df_final = df.drop_duplicates(subset=["Placa"], keep="first")[
-    ["Placa", "Proprietário","Posição", "Latitude", "Longitude"]
+    ["Placa","Posição", "Latitude", "Longitude"]
 ]
 
 # =========================
