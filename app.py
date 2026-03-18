@@ -1,10 +1,10 @@
+ULTIMO CÓDIGO GITHUB
+
 import streamlit as st
 import pandas as pd
 from google.cloud import storage
 from google.oauth2 import service_account
 from io import BytesIO
-from geopy.geocoders import Nominatim
-from geopy.extra.rate_limiter import RateLimiter
 
 BUCKET_NAME = "control-tower-dados"
 
@@ -46,7 +46,7 @@ df["Tipo"] = df["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
 )
 
-# 🔧 CORREÇÃO LAT/LONG
+# 🔧 FUNÇÃO DE CORREÇÃO LAT/LONG
 def corrigir_coord(valor):
     if pd.isna(valor):
         return None
@@ -62,6 +62,7 @@ def corrigir_coord(valor):
     except:
         return None
 
+# 🧠 APLICANDO CORREÇÃO
 df["Latitude_corrigida"] = df["Latitude"].apply(corrigir_coord)
 df["Longitude_corrigida"] = df["Longitude"].apply(corrigir_coord)
 
@@ -69,60 +70,16 @@ df["Longitude_corrigida"] = df["Longitude"].apply(corrigir_coord)
 df = df.sort_values(by="Posição", ascending=False)
 df = df.drop_duplicates(subset="Placa", keep="first")
 
-# 🌍 GEOLOCALIZAÇÃO
-geolocator = Nominatim(user_agent="control_tower")
-reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
-
-# 🔥 CACHE
-cache_localizacao = {}
-
-def obter_localizacao(lat, lon):
-    chave = (lat, lon)
-    
-    if chave in cache_localizacao:
-        return cache_localizacao[chave]
-
-    try:
-        location = reverse((lat, lon), language="pt")
-        if location and location.raw.get("address"):
-            address = location.raw["address"]
-            
-            cidade = (
-                address.get("city") or
-                address.get("town") or
-                address.get("village") or
-                address.get("municipality")
-            )
-            
-            uf = address.get("state_code") or address.get("state")
-            
-            if cidade and uf:
-                resultado = f"{cidade} - {uf}"
-                cache_localizacao[chave] = resultado
-                return resultado
-        
-        cache_localizacao[chave] = "Não identificado"
-        return "Não identificado"
-    
-    except:
-        return "Erro"
-
-df["Localização Atual"] = df.apply(
-    lambda row: obter_localizacao(
-        row["Latitude_corrigida"],
-        row["Longitude_corrigida"]
-    ) if pd.notna(row["Latitude_corrigida"]) else "Sem coordenada",
-    axis=1
-)
 # 🇧🇷 FORMATAÇÃO DATA
 df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
-# 🔽 COLUNAS (SEM LAT/LONG)
+# 🔽 COLUNAS
 colunas_finais = [
     "Placa",
     "Tipo",
     "Posição",
-    "Localização Atual"
+    "Latitude_corrigida",
+    "Longitude_corrigida"
 ]
 
 df = df[[col for col in colunas_finais if col in df.columns]]
@@ -142,3 +99,13 @@ df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 st.title("🚛 Base Omni - Última Posição por Placa")
 
 st.dataframe(df_filtrado)
+
+# 🗺️ MAPA
+st.subheader("📍 Mapa")
+
+df_mapa = df_filtrado.dropna(subset=["Latitude_corrigida", "Longitude_corrigida"])
+
+st.map(df_mapa.rename(columns={
+    "Latitude_corrigida": "lat",
+    "Longitude_corrigida": "lon"
+}))
