@@ -33,7 +33,13 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
-# 🧠 Coluna derivada
+# 🧠 CRIAR COLUNA POSIÇÃO (MESMA LÓGICA DO POWER BI)
+df["Posição"] = pd.to_datetime(
+    df["Data de comunicação"].astype(str).str[4:24],
+    errors="coerce"
+)
+
+# 🧠 Coluna derivada Tipo
 df["Tipo"] = df["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
 )
@@ -42,6 +48,7 @@ df["Tipo"] = df["Proprietário"].apply(
 colunas_finais = [
     "Placa",
     "Tipo",
+    "Posição",
     "Data de comunicação",
     "Latitude",
     "Longitude"
