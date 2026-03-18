@@ -112,6 +112,25 @@ df = df.drop_duplicates(
 )
 
 # =========================
+# 🌎 TRATAMENTO LAT/LONG
+# =========================
+
+def corrigir_coordenada(valor):
+    try:
+        valor = str(valor)
+
+        if valor.count('.') > 1:
+            partes = valor.split('.')
+            valor = partes[0] + '.' + ''.join(partes[1:])
+
+        return float(valor)
+    except:
+        return None
+
+
+df["Latitude_tratada"] = df["Latitude"].apply(corrigir_coordenada)
+df["Longitude_tratada"] = df["Longitude"].apply(corrigir_coordenada)
+# =========================
 # VALIDAÇÃO
 # =========================
 if df.empty:
@@ -132,3 +151,14 @@ col2.metric("Placas únicas", df["Placa"].nunique())
 st.subheader("📋 Dados da Operação")
 
 st.dataframe(df)
+# =========================
+# 🗺️ MAPA
+# =========================
+st.subheader("🗺️ Mapa dos Veículos")
+
+df_mapa = df.dropna(subset=["Latitude_tratada", "Longitude_tratada"])
+
+st.map(df_mapa.rename(columns={
+    "Latitude_tratada": "lat",
+    "Longitude_tratada": "lon"
+}))
