@@ -59,7 +59,7 @@ st.success("Dados carregados com sucesso")
 # =========================
 # 🚛 TIPO DE FROTA
 # =========================
-df["Tipo_Frota"] = df["Proprietario"].apply(
+df["Tipo_Frota"] = df["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().lower() == "lemar" else "Agregado"
 )
 
