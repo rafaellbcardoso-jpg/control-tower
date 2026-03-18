@@ -33,23 +33,33 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
-# 🧠 Coluna derivada
+# 🧠 DERIVAR DATA DA COLUNA "Posição"
+df["Data_Hora"] = pd.to_datetime(
+    df["Posição"].astype(str).str[4:24],
+    errors="coerce"
+)
+
+# 🇧🇷 FORMATO BR (APENAS VISUAL)
+df["Data de comunicação"] = df["Data_Hora"].dt.strftime("%d/%m/%Y %H:%M:%S")
+
+# 🧠 COLUNA TIPO
 df["Tipo"] = df["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
 )
 
-# 🔽 Seleção de colunas
+# 🔽 COLUNAS FINAIS
 colunas_finais = [
     "Placa",
     "Tipo",
-    "Data de comunicação",
+    "Data_Hora",              # 👈 usada para ordenar corretamente
+    "Data de comunicação",    # 👈 visual
     "Latitude",
     "Longitude"
 ]
 
 df = df[[col for col in colunas_finais if col in df.columns]]
 
-# 🎛️ FILTRO NA SIDEBAR
+# 🎛️ FILTRO
 st.sidebar.title("Filtros")
 
 tipo_selecionado = st.sidebar.multiselect(
@@ -58,10 +68,12 @@ tipo_selecionado = st.sidebar.multiselect(
     default=df["Tipo"].unique()
 )
 
-# Aplicando filtro
 df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 
-# 📊 Exibição
+# 🔥 ORDENAÇÃO CORRETA (pela coluna datetime real)
+df_filtrado = df_filtrado.sort_values(by="Data_Hora", ascending=False)
+
+# 📊 EXIBIÇÃO
 st.title("🚛 Base Omni - Operacional")
 
 st.dataframe(df_filtrado)
