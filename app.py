@@ -53,15 +53,20 @@ if not dfs:
 df = pd.concat(dfs, ignore_index=True)
 
 # =========================
-# TRATAR DATA
+# GARANTE NOME DAS COLUNAS
 # =========================
-df["Data_Hora"] = (
-    df["Data_Hora"]
-    .astype(str)
-    .str[4:24]
-)
+df.columns = df.columns.str.strip()
 
-df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
+if "Data_Hora" in df.columns:
+    df["Data_Hora"] = (
+        df["Data_Hora"]
+        .astype(str)
+        .str[4:24]
+    )
+    df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
+else:
+    st.error(f"Coluna Data_Hora não encontrada. Colunas disponíveis: {list(df.columns)}")
+    st.stop()
 
 # =========================
 # TRATAR LAT/LONG
