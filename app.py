@@ -56,51 +56,37 @@ df = pd.concat(dfs, ignore_index=True)
 # TRATAR COLUNAS
 # =========================
 df.columns = df.columns.str.strip()
+
 # =========================
-# 🕒 TRATAMENTO DATA (PADRÃO POWER BI)
+# TRATAMENTO DATA
 # =========================
 df["Posição"] = pd.to_datetime(
-    df["Data de comunicação"]
-    .astype(str)
-    .str[4:24],
+    df["Data de comunicação"].astype(str).str[4:24],
     errors="coerce"
 )
-# 👉 FORMATA PADRÃO BR
-df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
-# NÃO CONVERTER DATA (mantém original)
-# df["Data de comunicação"] = pd.to_datetime(...)
+df["Data de comunicação"] = pd.to_datetime(df["Data de comunicação"], errors="coerce")
 
+# =========================
+# LAT/LONG
+# =========================
 df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
 df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
 
 # =========================
-# GARANTIR DATA COMO DATETIME (pra ordenar certo)
-# =========================
-df["Data de comunicação"] = pd.to_datetime(df["Data de comunicação"], errors="coerce")
-
-# =========================
-# PEGAR ÚLTIMA POSIÇÃO POR PLACA
+# ÚLTIMA POSIÇÃO POR PLACA
 # =========================
 df = df.sort_values("Data de comunicação", ascending=False)
 
 df_final = df.drop_duplicates(subset=["Placa"], keep="first")[
-    ["Placa","Proprietário","Posição", "Latitude", "Longitude"]
+    ["Placa", "Proprietário", "Posição", "Latitude", "Longitude"]
 ]
 
 # =========================
-# EXIBIR
-# =========================
-st.title("🚛 Base Omni")
-# =========================
-# FILTROS SIDEBAR
+# SIDEBAR FILTROS
 # =========================
 st.sidebar.header("Filtros")
 
-# Converter posição pra datetime (usar antes do filtro)
-df_final["Posição_dt"] = pd.to_datetime(df_final["Posição"], errors="coerce")
-
-# Datas padrão: ontem até hoje
 hoje = pd.Timestamp.today().normalize()
 ontem = hoje - pd.Timedelta(days=1)
 
@@ -109,7 +95,8 @@ data_inicio, data_fim = st.sidebar.date_input(
     [ontem, hoje]
 )
 
-# Filtro por tipo
+df_final["Posição_dt"] = df_final["Posição"]
+
 df_final["Tipo"] = df_final["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
 )
@@ -132,5 +119,9 @@ df_filtrado = df_final[
 # =========================
 # EXIBIR
 # =========================
+st.title("🚛 Base Omni")
 
-st.dataframe(df_final)
+df_exibir = df_filtrado.copy()
+df_exibir["Posição"] = df_exibir["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
+
+st.dataframe(df_exibir.drop(columns=["Posição_dt"]))
