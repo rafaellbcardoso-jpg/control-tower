@@ -43,10 +43,7 @@ dfs = []
 for blob in blobs:
     if blob.name.endswith(".csv"):
         content = blob.download_as_bytes()
-        try:
-            df_temp = pd.read_csv(BytesIO(content), sep=";", encoding="latin1")
-        except:
-            df_temp = pd.read_csv(BytesIO(content), sep=None, engine="python")
+        df_temp = pd.read_csv(BytesIO(content))
         dfs.append(df_temp)
 
 if not dfs:
@@ -61,16 +58,21 @@ df = pd.concat(dfs, ignore_index=True)
 df.columns = df.columns.str.strip()
 
 # =========================
-# TRATAMENTO DATA (SEM GAMBIARRA)
+# 🕒 TRATAMENTO DATA (PADRÃO POWER BI)
 # =========================
 df["Posição"] = pd.to_datetime(
-    df["Data de comunicação"],
+    df["Data de comunicação"]
+    .astype(str)
+    .str[4:24],
     errors="coerce"
 )
 
-# =========================
-# LAT/LONG
-# =========================
+# 👉 FORMATA PADRÃO BR
+df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
+
+# NÃO CONVERTER DATA (mantém original)
+# df["Data de comunicação"] = pd.to_datetime(...)
+
 df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
 df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
 
@@ -78,7 +80,7 @@ df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
 # SELEÇÃO FINAL
 # =========================
 df_final = df[
-    ["Placa", "Proprietário", "Posição", "Data de comunicação", "Latitude", "Longitude"]
+    ["Placa", "Proprietário","Posição", "Data de comunicação", "Latitude", "Longitude"]
 ]
 
 # =========================
