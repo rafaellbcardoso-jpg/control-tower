@@ -7,7 +7,7 @@ from io import BytesIO
 # =========================
 # CONFIG
 # =========================
-BUCKET_NAME = "Torre - Zé da rpta - Lemar"
+BUCKET_NAME = "Torre Lemar"
 
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["google"]
