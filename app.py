@@ -1,38 +1,96 @@
+import streamlit as st
+import pandas as pd
+from google.cloud import storage
+from google.oauth2 import service_account
+from io import BytesIO
+
 # =========================
-# 🔥 TRATAMENTO LAT/LONG (CORRIGIDO DE VERDADE)
+# CONFIG
 # =========================
-def limpar_coordenada(valor):
-    try:
-        valor = str(valor)
+BUCKET_NAME = "control-tower-dados"
 
-        # mantém sinal negativo
-        negativo = "-" if valor.startswith("-") else ""
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["google"]
+)
 
-        # remove tudo que não é número ou ponto
-        valor = valor.replace("-", "")
-        
-        partes = valor.split(".")
+# =========================
+# FUNÇÃO ETL
+# =========================
+@st.cache_data
+def carregar_etl():
+    client = storage.Client(
+        credentials=credentials,
+        project="paine-stramlit"
+    )
 
-        if len(partes) >= 2:
-            valor = partes[0] + "." + "".join(partes[1:])
-        else:
-            valor = partes[0]
+    bucket = client.bucket(BUCKET_NAME)
+    blob = bucket.blob("etl/tabela_painel.csv")
 
-        valor = float(negativo + valor)
+    content = blob.download_as_bytes()
+    df = pd.read_csv(BytesIO(content))
 
-        return valor
-    except:
-        return None
+    # 🔥 TRATAMENTO DATA_HORA
+    if "Data_Hora" in df.columns:
+        df["Data_Hora"] = (
+            df["Data_Hora"]
+            .astype(str)
+            .str[4:24]
+        )
+
+        df["Data_Hora"] = pd.to_datetime(
+            df["Data_Hora"],
+            errors="coerce"
+        )
+
+    return df
 
 
-df["Latitude"] = df["Latitude"].apply(limpar_coordenada)
-df["Longitude"] = df["Longitude"].apply(limpar_coordenada)
+# =========================
+# APP
+# =========================
+st.set_page_config(layout="wide")
 
-# remove inválidos
-df = df.dropna(subset=["Latitude", "Longitude"])
+st.title("🚛 Control Tower - Operação")
 
-# remove coordenadas absurdas
+df = carregar_etl()
+
+st.success("Dados carregados com sucesso")
+
+# =========================
+# 📅 FILTRO DE DATA
+# =========================
+st.subheader("📅 Filtro de Data")
+
+df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
+
+data_min = df["Data_Hora"].min()
+data_max = df["Data_Hora"].max()
+
+data_inicio, data_fim = st.date_input(
+    "Selecione o período",
+    [data_min, data_max]
+)
+
 df = df[
-    (df["Latitude"].between(-35, 5)) &
-    (df["Longitude"].between(-75, -30))
+    (df["Data_Hora"].dt.date >= data_inicio) &
+    (df["Data_Hora"].dt.date <= data_fim)
 ]
+
+if df.empty:
+    st.warning("Nenhum dado encontrado para o período selecionado")
+    st.stop()
+
+# =========================
+# 📊 INDICADORES
+# =========================
+col1, col2 = st.columns(2)
+
+col1.metric("Total de Registros", len(df))
+col2.metric("Placas únicas", df["Placa"].nunique())
+
+# =========================
+# 📋 TABELA
+# =========================
+st.subheader("📋 Dados da Operação")
+
+st.dataframe(df)
