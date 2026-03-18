@@ -47,7 +47,7 @@ def carregar_etl():
 # =========================
 # 🚛 ÚLTIMA POSIÇÃO POR PLACA
 # =========================
-df = df.sort_values("Data_Hora")
+df = df.sort_values("Data Hora")
 
 df = df.drop_duplicates(
     subset="Placa",
