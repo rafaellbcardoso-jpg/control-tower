@@ -81,14 +81,16 @@ df = df.sort_values(by="Posição", ascending=False)
 df = df.drop_duplicates(subset="Placa", keep="first")
 
 # =========================
-# 🌍 CARREGAR BASE CIDADES (BUCKET)
+# 🌍 BASE DE CIDADES
 # =========================
 blob_cidades = bucket.blob("cidades/Cidades_Bucket.xlsx")
 conteudo = blob_cidades.download_as_bytes()
 
 df_cidades = pd.read_excel(BytesIO(conteudo))
 
-# ⚠️ AJUSTAR NOMES SE NECESSÁRIO
+# 🔒 Padronização
+df_cidades.columns = df_cidades.columns.str.strip()
+
 df_cidades = df_cidades.rename(columns={
     "LATITU": "Lat",
     "LONGIT": "Lon",
@@ -113,9 +115,9 @@ dist, ind = tree.query(coords_veiculos, k=1)
 
 df_validos["Localização Atual"] = df_cidades.iloc[ind.flatten()]["Localização Atual"].values
 
-)
-
-# merge de volta
+# =========================
+# 🔗 MERGE
+# =========================
 df = df.merge(
     df_validos[["Placa", "Localização Atual"]],
     on="Placa",
@@ -128,16 +130,14 @@ df = df.merge(
 df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
 # =========================
-# 🔽 COLUNAS (SEM LAT/LONG)
+# 🔽 COLUNAS
 # =========================
-colunas_finais = [
+df = df[[
     "Placa",
     "Tipo",
     "Posição",
     "Localização Atual"
-]
-
-df = df[[col for col in colunas_finais if col in df.columns]]
+]]
 
 # =========================
 # 🎛️ FILTRO
@@ -160,7 +160,7 @@ st.title("🚛 Base Omni - Última Posição por Placa")
 st.dataframe(df_filtrado)
 
 # =========================
-# 🗺️ MAPA (USA COORDENADAS ORIGINAIS)
+# 🗺️ MAPA
 # =========================
 st.subheader("📍 Mapa")
 
