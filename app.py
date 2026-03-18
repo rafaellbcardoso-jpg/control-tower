@@ -146,22 +146,53 @@ col1.metric("Total de Registros", len(df))
 col2.metric("Placas únicas", df["Placa"].nunique())
 
 # =========================
-# 📋 TABELA
+# 📊 RESUMO ESTILO BI
 # =========================
-st.subheader("📋 Dados da Operação")
+st.subheader("📋 Resumo da Operação")
 
-st.dataframe(df)
-# =========================
-# 🗺️ MAPA
-# =========================
-st.subheader("🗺️ Mapa dos Veículos")
+# -------------------------
+# 🔵 POSIÇÃO (OMNI)
+# -------------------------
+df_posicao = df.sort_values("Data_Hora").drop_duplicates(
+    subset="Placa",
+    keep="last"
+)[["Placa", "Latitude_tratada", "Longitude_tratada"]]
 
-df_mapa = df.dropna(subset=["Latitude_tratada", "Longitude_tratada"])
+# -------------------------
+# 🟢 PROGRAMAÇÃO (ROBO)
+# -------------------------
+df_programacao = df.sort_values("Data").drop_duplicates(
+    subset="Placa",
+    keep="last"
+)[[
+    "Placa",
+    "Motoristas",
+    "PV",
+    "Data",
+    "Rotas",
+    "Status",
+    "ETA_2"
+]]
 
-st.map(df_mapa.rename(columns={
-    "Latitude_tratada": "lat",
-    "Longitude_tratada": "lon"
-}))
+# -------------------------
+# 🔗 JOIN
+# -------------------------
+df_final = df_posicao.merge(df_programacao, on="Placa", how="left")
+
+# -------------------------
+# 🧾 AJUSTE FINAL
+# -------------------------
+df_final = df_final.rename(columns={
+    "Placa": "Cavalo",
+    "Motoristas": "Motorista",
+    "PV": "Programação",
+    "Data": "Ultima Data",
+    "Rotas": "Rota Hoje",
+    "Status": "Status",
+    "ETA_2": "Carregamento"
+})
+
+st.dataframe(df_final)
 # =========================
 # 📊 TABELA RESUMIDA
 # =========================
