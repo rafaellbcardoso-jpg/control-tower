@@ -174,7 +174,7 @@ df_resumo = df.sort_values("Data_Hora").drop_duplicates(
 
 df_resumo = df_resumo.rename(columns={
     "Motoristas": "Motorista",
-    "PV": "Programação"
+    "Data_Hora": "Posicionamento"
 })
 
 st.dataframe(df_resumo)
