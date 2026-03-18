@@ -76,7 +76,7 @@ df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
 # SELEÇÃO FINAL
 # =========================
 df_final = df[
-    ["Placa", "Proprietário", "Data de comunicação", "Latitude", "Longitude"]
+    ["Placa", "Proprietário","Posição", "Data de comunicação", "Latitude", "Longitude"]
 ]
 
 # =========================
