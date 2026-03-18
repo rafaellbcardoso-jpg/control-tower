@@ -27,7 +27,7 @@ def carregar_etl():
     blob = bucket.blob("etl/tabela_painel.csv")
 
     content = blob.download_as_bytes()
-    df = pd.read_csv(BytesIO(content), encoding="latin1")
+    df = pd.read_csv(BytesIO(content))
 
     # 🔥 TRATAMENTO DATA_HORA
     if "Data_Hora" in df.columns:
@@ -68,6 +68,8 @@ df["Tipo_Frota"] = df["Proprietário"].apply(
 # =========================
 st.subheader("📅 Filtro de Data")
 
+df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
+
 data_min = df["Data_Hora"].min()
 data_max = df["Data_Hora"].max()
 
@@ -95,7 +97,7 @@ tipo_frota = st.sidebar.multiselect(
 df = df[df["Tipo_Frota"].isin(tipo_frota)]
 
 # =========================
-# 🚛 ÚLTIMA POSIÇÃO POR PLACA
+# 🚛 ÚLTIMA POSIÇÃO POR PLACA (MOVIDO PRA CÁ)
 # =========================
 df = df.sort_values("Data_Hora")
 
@@ -122,6 +124,6 @@ col2.metric("Placas únicas", df["Placa"].nunique())
 # =========================
 # 📋 TABELA
 # =========================
-st.subheader("📋 Última posição por placa")
+st.subheader("📋 Dados da Operação")
 
 st.dataframe(df)
