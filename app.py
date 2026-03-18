@@ -9,11 +9,13 @@ from io import BytesIO
 # =========================
 BUCKET_NAME = "control-tower-dados"
 
-# 🔐 pega credencial do Streamlit Secrets
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["google"]
 )
 
+# =========================
+# FUNÇÃO ETL
+# =========================
 @st.cache_data
 def carregar_etl():
     client = storage.Client(credentials=credentials)
@@ -23,6 +25,20 @@ def carregar_etl():
     content = blob.download_as_bytes()
 
     df = pd.read_csv(BytesIO(content))
+
+    # 🔥 TRATAMENTO DATA_HORA (igual Power BI)
+    if "Data_Hora" in df.columns:
+        df["Data_Hora"] = (
+            df["Data_Hora"]
+            .astype(str)
+            .str[4:24]  # equivalente ao Text.Middle
+        )
+
+        df["Data_Hora"] = pd.to_datetime(
+            df["Data_Hora"],
+            errors="coerce"
+        )
+
     return df
 
 # =========================
@@ -36,4 +52,5 @@ df = carregar_etl()
 
 st.success("Dados carregados com sucesso")
 
+# 🔍 Visualização
 st.dataframe(df)
