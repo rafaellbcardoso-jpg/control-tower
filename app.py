@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+from sklearn.neighbors import BallTree
 from google.cloud import storage
 from google.oauth2 import service_account
 from io import BytesIO
@@ -17,6 +19,9 @@ client = storage.Client(
 
 bucket = client.bucket(BUCKET_NAME)
 
+# =========================
+# 🔽 BASE OMNILINK
+# =========================
 blobs = list(bucket.list_blobs(prefix="omnilink/"))
 
 dfs = []
@@ -33,18 +38,24 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
+# =========================
 # 🧠 POSIÇÃO
+# =========================
 df["Posição"] = pd.to_datetime(
     df["Data de comunicação"].astype(str).str[4:24],
     errors="coerce"
 )
 
-# 🧠 Tipo
+# =========================
+# 🧠 TIPO
+# =========================
 df["Tipo"] = df["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
 )
 
-# 🔧 FUNÇÃO DE CORREÇÃO LAT/LONG
+# =========================
+# 🔧 CORREÇÃO LAT/LONG
+# =========================
 def corrigir_coord(valor):
     if pd.isna(valor):
         return None
@@ -60,29 +71,81 @@ def corrigir_coord(valor):
     except:
         return None
 
-# 🧠 APLICANDO CORREÇÃO
 df["Latitude_corrigida"] = df["Latitude"].apply(corrigir_coord)
 df["Longitude_corrigida"] = df["Longitude"].apply(corrigir_coord)
 
-# 🔥 ÚLTIMA POSIÇÃO POR PLACA
+# =========================
+# 🔥 ÚLTIMA POSIÇÃO
+# =========================
 df = df.sort_values(by="Posição", ascending=False)
 df = df.drop_duplicates(subset="Placa", keep="first")
 
+# =========================
+# 🌍 CARREGAR BASE CIDADES (BUCKET)
+# =========================
+blob_cidades = bucket.blob("cidades/Cidades_Bucket.xlsx")
+conteudo = blob_cidades.download_as_bytes()
+
+df_cidades = pd.read_excel(BytesIO(conteudo))
+
+# ⚠️ AJUSTAR NOMES SE NECESSÁRIO
+df_cidades = df_cidades.rename(columns={
+    "Cidade": "Cidade",
+    "UF": "UF",
+    "Latitude": "Lat",
+    "Longitude": "Lon"
+})
+
+df_cidades = df_cidades.dropna(subset=["Lat", "Lon"])
+
+# =========================
+# 🧠 KNN
+# =========================
+coords_cidades = np.radians(df_cidades[["Lat", "Lon"]].values)
+tree = BallTree(coords_cidades, metric="haversine")
+
+df_validos = df.dropna(subset=["Latitude_corrigida", "Longitude_corrigida"]).copy()
+
+coords_veiculos = np.radians(
+    df_validos[["Latitude_corrigida", "Longitude_corrigida"]].values
+)
+
+dist, ind = tree.query(coords_veiculos, k=1)
+
+df_validos["Cidade"] = df_cidades.iloc[ind.flatten()]["Cidade"].values
+df_validos["UF"] = df_cidades.iloc[ind.flatten()]["UF"].values
+
+df_validos["Localização Atual"] = (
+    df_validos["Cidade"] + " - " + df_validos["UF"]
+)
+
+# merge de volta
+df = df.merge(
+    df_validos[["Placa", "Localização Atual"]],
+    on="Placa",
+    how="left"
+)
+
+# =========================
 # 🇧🇷 FORMATAÇÃO DATA
+# =========================
 df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
-# 🔽 COLUNAS
+# =========================
+# 🔽 COLUNAS (SEM LAT/LONG)
+# =========================
 colunas_finais = [
     "Placa",
     "Tipo",
     "Posição",
-    "Latitude_corrigida",
-    "Longitude_corrigida"
+    "Localização Atual"
 ]
 
 df = df[[col for col in colunas_finais if col in df.columns]]
 
+# =========================
 # 🎛️ FILTRO
+# =========================
 st.sidebar.title("Filtros")
 
 tipo_selecionado = st.sidebar.multiselect(
@@ -93,17 +156,21 @@ tipo_selecionado = st.sidebar.multiselect(
 
 df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 
+# =========================
 # 📊 TABELA
+# =========================
 st.title("🚛 Base Omni - Última Posição por Placa")
 
 st.dataframe(df_filtrado)
 
-# 🗺️ MAPA
+# =========================
+# 🗺️ MAPA (USA COORDENADAS ORIGINAIS)
+# =========================
 st.subheader("📍 Mapa")
 
-df_mapa = df_filtrado.dropna(subset=["Latitude_corrigida", "Longitude_corrigida"])
-
-st.map(df_mapa.rename(columns={
+df_mapa = df_validos.rename(columns={
     "Latitude_corrigida": "lat",
     "Longitude_corrigida": "lon"
-}))
+})
+
+st.map(df_mapa)
