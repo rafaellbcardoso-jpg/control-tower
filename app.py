@@ -1,10 +1,23 @@
+import streamlit as st
 import pandas as pd
 from google.cloud import storage
+from google.oauth2 import service_account
 from io import BytesIO
 
+# =========================
+# CONFIG
+# =========================
 BUCKET_NAME = "control-tower-dados"
 
-client = storage.Client()
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["google"]
+)
+
+client = storage.Client(
+    credentials=credentials,
+    project="paine-stramlit"
+)
+
 bucket = client.bucket(BUCKET_NAME)
 
 # =========================
@@ -33,6 +46,10 @@ for blob in blobs:
         df_temp = pd.read_csv(BytesIO(content))
         dfs.append(df_temp)
 
+if not dfs:
+    st.error("Nenhum arquivo encontrado em omnilink/")
+    st.stop()
+
 df = pd.concat(dfs, ignore_index=True)
 
 # =========================
@@ -53,12 +70,8 @@ df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
 df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
 
 # =========================
-# SALVAR NO BUCKET
+# EXIBIR
 # =========================
-output = BytesIO()
-df.to_csv(output, index=False)
+st.title("🚛 Base Omni")
 
-blob_output = bucket.blob("etl/omni_tratado.csv")
-blob_output.upload_from_string(output.getvalue(), content_type="text/csv")
-
-print("Omni tratado salvo com sucesso")
+st.dataframe(df)
