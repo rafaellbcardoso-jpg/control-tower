@@ -90,10 +90,9 @@ df_cidades = pd.read_excel(BytesIO(conteudo))
 
 # ⚠️ AJUSTAR NOMES SE NECESSÁRIO
 df_cidades = df_cidades.rename(columns={
-    "Cidade": "Cidade",
-    "UF": "UF",
-    "Latitude": "Lat",
-    "Longitude": "Lon"
+    "LATITU": "Lat",
+    "LONGIT": "Lon",
+    "Cidade - UF": "Localização Atual"
 })
 
 df_cidades = df_cidades.dropna(subset=["Lat", "Lon"])
@@ -112,11 +111,8 @@ coords_veiculos = np.radians(
 
 dist, ind = tree.query(coords_veiculos, k=1)
 
-df_validos["Cidade"] = df_cidades.iloc[ind.flatten()]["Cidade"].values
-df_validos["UF"] = df_cidades.iloc[ind.flatten()]["UF"].values
+df_validos["Localização Atual"] = df_cidades.iloc[ind.flatten()]["Localização Atual"].values
 
-df_validos["Localização Atual"] = (
-    df_validos["Cidade"] + " - " + df_validos["UF"]
 )
 
 # merge de volta
