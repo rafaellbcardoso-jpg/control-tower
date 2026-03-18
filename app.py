@@ -75,9 +75,16 @@ df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
 df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
 
 # =========================
-# SELEÇÃO FINAL
+# GARANTIR DATA COMO DATETIME (pra ordenar certo)
 # =========================
-df_final = df[
+df["Data de comunicação"] = pd.to_datetime(df["Data de comunicação"], errors="coerce")
+
+# =========================
+# PEGAR ÚLTIMA POSIÇÃO POR PLACA
+# =========================
+df = df.sort_values("Data de comunicação", ascending=False)
+
+df_final = df.drop_duplicates(subset=["Placa"], keep="first")[
     ["Placa", "Proprietário","Posição", "Data de comunicação", "Latitude", "Longitude"]
 ]
 
