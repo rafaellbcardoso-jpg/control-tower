@@ -37,7 +37,7 @@ df = pd.concat(dfs, ignore_index=True)
 colunas_desejadas = [
     "Placa",
     "Proprietário",
-    "Data da Comunicação",
+    "Data de comunicação",
     "Latitude",
     "Longitude"
 ]
