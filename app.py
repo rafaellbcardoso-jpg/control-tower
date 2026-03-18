@@ -88,7 +88,6 @@ conteudo = blob_cidades.download_as_bytes()
 
 df_cidades = pd.read_excel(BytesIO(conteudo))
 
-# 🔒 Padronização
 df_cidades.columns = df_cidades.columns.str.strip()
 
 df_cidades = df_cidades.rename(columns={
@@ -96,6 +95,14 @@ df_cidades = df_cidades.rename(columns={
     "LONGIT": "Lon",
     "Cidade - UF": "Localização Atual"
 })
+
+# 🔥 CORREÇÃO VÍRGULA → PONTO
+df_cidades["Lat"] = df_cidades["Lat"].astype(str).str.replace(",", ".")
+df_cidades["Lon"] = df_cidades["Lon"].astype(str).str.replace(",", ".")
+
+# 🔥 CONVERSÃO PRA FLOAT
+df_cidades["Lat"] = pd.to_numeric(df_cidades["Lat"], errors="coerce")
+df_cidades["Lon"] = pd.to_numeric(df_cidades["Lon"], errors="coerce")
 
 df_cidades = df_cidades.dropna(subset=["Lat", "Lon"])
 
