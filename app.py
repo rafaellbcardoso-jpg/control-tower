@@ -44,7 +44,15 @@ def carregar_etl():
 
     return df
 
+# =========================
+# 🚛 ÚLTIMA POSIÇÃO POR PLACA
+# =========================
+df = df.sort_values("Data_Hora")
 
+df = df.drop_duplicates(
+    subset="Placa",
+    keep="last"
+)
 # =========================
 # APP
 # =========================
