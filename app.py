@@ -21,19 +21,6 @@ client = storage.Client(
 bucket = client.bucket(BUCKET_NAME)
 
 # =========================
-# FUNÇÃO CORREÇÃO LAT/LONG
-# =========================
-def corrigir_coordenada(valor):
-    try:
-        valor = str(valor)
-        if valor.count('.') > 1:
-            partes = valor.split('.')
-            valor = partes[0] + '.' + ''.join(partes[1:])
-        return float(valor)
-    except:
-        return None
-
-# =========================
 # LER TODOS OS ARQUIVOS
 # =========================
 blobs = list(bucket.list_blobs(prefix="omnilink/"))
@@ -53,40 +40,13 @@ if not dfs:
 df = pd.concat(dfs, ignore_index=True)
 
 # =========================
-# TRATAR COLUNAS
+# TRATAR COLUNAS (SÓ LIMPAR ESPAÇO)
 # =========================
 df.columns = df.columns.str.strip()
 
 # =========================
-# TRATAMENTO DATA (CORRIGIDO)
-# =========================
-df["Posição"] = pd.to_datetime(
-    df["Data de comunicação"],
-    errors="coerce"
-)
-
-# =========================
-# LAT/LONG
-# =========================
-df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
-df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
-
-# =========================
-# ÚLTIMA POSIÇÃO POR PLACA
-# =========================
-df = df.sort_values("Posição", ascending=False)
-df = df.drop_duplicates(subset=["Placa"], keep="first")
-
-# =========================
-# SELEÇÃO FINAL
-# =========================
-df_final = df[
-    ["Placa", "Proprietário", "Posição", "Latitude", "Longitude"]
-]
-
-# =========================
-# EXIBIR
+# EXIBIR (SEM ALTERAR NADA)
 # =========================
 st.title("🚛 Base Omni")
 
-st.dataframe(df_final)
+st.dataframe(df)
