@@ -27,7 +27,7 @@ def carregar_etl():
     blob = bucket.blob("etl/tabela_painel.csv")
 
     content = blob.download_as_bytes()
-    df = pd.read_csv(BytesIO(content))
+    df = pd.read_csv(BytesIO(content), encoding="latin1")
 
     # 🔥 TRATAMENTO DATA_HORA
     if "Data_Hora" in df.columns:
@@ -44,15 +44,7 @@ def carregar_etl():
 
     return df
 
-# =========================
-# 🚛 ÚLTIMA POSIÇÃO POR PLACA
-# =========================
-df = df.sort_values("Data Hora")
 
-df = df.drop_duplicates(
-    subset="Placa",
-    keep="last"
-)
 # =========================
 # APP
 # =========================
@@ -75,8 +67,6 @@ df["Tipo_Frota"] = df["Proprietário"].apply(
 # 📅 FILTRO DE DATA
 # =========================
 st.subheader("📅 Filtro de Data")
-
-df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
 
 data_min = df["Data_Hora"].min()
 data_max = df["Data_Hora"].max()
@@ -105,6 +95,16 @@ tipo_frota = st.sidebar.multiselect(
 df = df[df["Tipo_Frota"].isin(tipo_frota)]
 
 # =========================
+# 🚛 ÚLTIMA POSIÇÃO POR PLACA
+# =========================
+df = df.sort_values("Data_Hora")
+
+df = df.drop_duplicates(
+    subset="Placa",
+    keep="last"
+)
+
+# =========================
 # VALIDAÇÃO
 # =========================
 if df.empty:
@@ -122,6 +122,6 @@ col2.metric("Placas únicas", df["Placa"].nunique())
 # =========================
 # 📋 TABELA
 # =========================
-st.subheader("📋 Dados da Operação")
+st.subheader("📋 Última posição por placa")
 
 st.dataframe(df)
