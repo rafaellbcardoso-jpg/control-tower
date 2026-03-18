@@ -170,7 +170,7 @@ st.subheader("📋 Resumo da Operação")
 df_resumo = df.sort_values("Data_Hora").drop_duplicates(
     subset="Placa",
     keep="last"
-)[["Placa", "Motoristas", "Data"]]
+)[["Placa", "Motoristas","Data_Hora", "Data"]]
 
 df_resumo = df_resumo.rename(columns={
     "Motoristas": "Motorista",
