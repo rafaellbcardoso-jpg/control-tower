@@ -92,5 +92,45 @@ df_final = df.drop_duplicates(subset=["Placa"], keep="first")[
 # EXIBIR
 # =========================
 st.title("🚛 Base Omni")
+# =========================
+# FILTROS SIDEBAR
+# =========================
+st.sidebar.header("Filtros")
 
+# Converter posição pra datetime (usar antes do filtro)
+df_final["Posição_dt"] = pd.to_datetime(df_final["Posição"], errors="coerce")
+
+# Datas padrão: ontem até hoje
+hoje = pd.Timestamp.today().normalize()
+ontem = hoje - pd.Timedelta(days=1)
+
+data_inicio, data_fim = st.sidebar.date_input(
+    "Período",
+    [ontem, hoje]
+)
+
+# Filtro por tipo
+df_final["Tipo"] = df_final["Proprietário"].apply(
+    lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
+)
+
+tipo_filtro = st.sidebar.multiselect(
+    "Tipo",
+    ["Frota", "Agregado"],
+    default=["Frota", "Agregado"]
+)
+
+# =========================
+# APLICAR FILTROS
+# =========================
+df_filtrado = df_final[
+    (df_final["Posição_dt"].dt.date >= data_inicio) &
+    (df_final["Posição_dt"].dt.date <= data_fim) &
+    (df_final["Tipo"].isin(tipo_filtro))
+]
+
+# =========================
+# EXIBIR
+# =========================
+st.dataframe(df_filtrado.drop(columns=["Posição_dt"]))
 st.dataframe(df_final)
