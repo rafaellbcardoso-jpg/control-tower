@@ -56,6 +56,15 @@ df = pd.concat(dfs, ignore_index=True)
 # TRATAR COLUNAS
 # =========================
 df.columns = df.columns.str.strip()
+# =========================
+# 🕒 TRATAMENTO DATA (PADRÃO POWER BI)
+# =========================
+df["Posição"] = pd.to_datetime(
+    df["Data de comunicação"]
+    .astype(str)
+    .str[4:24],
+    errors="coerce"
+)
 
 # NÃO CONVERTER DATA (mantém original)
 # df["Data de comunicação"] = pd.to_datetime(...)
