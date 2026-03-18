@@ -56,10 +56,28 @@ df = carregar_etl()
 st.success("Dados carregados com sucesso")
 
 # =========================
-# 🔥 ÚLTIMA POSIÇÃO POR PLACA
+# 🔥 TRATAMENTO LAT/LONG
 # =========================
+df["Latitude"] = (
+    df["Latitude"]
+    .astype(str)
+    .str.replace(",", ".", regex=False)
+)
+
+df["Longitude"] = (
+    df["Longitude"]
+    .astype(str)
+    .str.replace(",", ".", regex=False)
+)
+
+df["Latitude"] = pd.to_numeric(df["Latitude"], errors="coerce")
+df["Longitude"] = pd.to_numeric(df["Longitude"], errors="coerce")
+
 df = df.dropna(subset=["Latitude", "Longitude"])
 
+# =========================
+# 🔥 ÚLTIMA POSIÇÃO POR PLACA
+# =========================
 df = df.sort_values("Data_Hora", ascending=False)
 
 df_ult = df.drop_duplicates(subset=["Placa"])
