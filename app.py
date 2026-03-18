@@ -58,23 +58,30 @@ df = pd.concat(dfs, ignore_index=True)
 df.columns = df.columns.str.strip()
 
 # =========================
-# TRATAMENTO DATA
+# TRATAMENTO DATA (CORRIGIDO)
 # =========================
 df["Posição"] = pd.to_datetime(
-    df["Data de comunicação"]
-    .astype(str)
-    .str[4:24],
+    df["Data de comunicação"],
     errors="coerce"
 )
 
+# =========================
+# LAT/LONG
+# =========================
 df["Latitude"] = df["Latitude"].apply(corrigir_coordenada)
 df["Longitude"] = df["Longitude"].apply(corrigir_coordenada)
+
+# =========================
+# ÚLTIMA POSIÇÃO POR PLACA
+# =========================
+df = df.sort_values("Posição", ascending=False)
+df = df.drop_duplicates(subset=["Placa"], keep="first")
 
 # =========================
 # SELEÇÃO FINAL
 # =========================
 df_final = df[
-    ["Placa", "Proprietário", "Posição", "Data de comunicação", "Latitude", "Longitude"]
+    ["Placa", "Proprietário", "Posição", "Latitude", "Longitude"]
 ]
 
 # =========================
