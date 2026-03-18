@@ -33,7 +33,7 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
-# 🧠 CRIAR COLUNA POSIÇÃO
+# 🧠 CRIAR POSIÇÃO (datetime real)
 df["Posição"] = pd.to_datetime(
     df["Data de comunicação"].astype(str).str[4:24],
     errors="coerce"
@@ -44,7 +44,14 @@ df["Tipo"] = df["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
 )
 
-# 🔽 COLUNAS (REMOVIDA Data de comunicação)
+# 🔥 PEGAR ÚLTIMA POSIÇÃO POR PLACA
+df = df.sort_values(by="Posição", ascending=False)
+df = df.drop_duplicates(subset="Placa", keep="first")
+
+# 🇧🇷 FORMATAÇÃO BR (APENAS VISUAL)
+df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
+
+# 🔽 COLUNAS
 colunas_finais = [
     "Placa",
     "Tipo",
@@ -67,6 +74,6 @@ tipo_selecionado = st.sidebar.multiselect(
 df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 
 # 📊 EXIBIÇÃO
-st.title("🚛 Base Omni - Operacional")
+st.title("🚛 Base Omni - Última Posição por Placa")
 
 st.dataframe(df_filtrado)
