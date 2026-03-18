@@ -1,5 +1,3 @@
-ULTIMO CÓDIGO GITHUB
-
 import streamlit as st
 import pandas as pd
 from google.cloud import storage
