@@ -33,30 +33,29 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
-# 🧠 CRIAR COLUNA POSIÇÃO (MESMA LÓGICA DO POWER BI)
+# 🧠 CRIAR COLUNA POSIÇÃO
 df["Posição"] = pd.to_datetime(
     df["Data de comunicação"].astype(str).str[4:24],
     errors="coerce"
 )
 
-# 🧠 Coluna derivada Tipo
+# 🧠 Tipo
 df["Tipo"] = df["Proprietário"].apply(
     lambda x: "Frota" if str(x).strip().upper() == "LEMAR" else "Agregado"
 )
 
-# 🔽 Seleção de colunas
+# 🔽 COLUNAS (REMOVIDA Data de comunicação)
 colunas_finais = [
     "Placa",
     "Tipo",
     "Posição",
-    "Data de comunicação",
     "Latitude",
     "Longitude"
 ]
 
 df = df[[col for col in colunas_finais if col in df.columns]]
 
-# 🎛️ FILTRO NA SIDEBAR
+# 🎛️ FILTRO
 st.sidebar.title("Filtros")
 
 tipo_selecionado = st.sidebar.multiselect(
@@ -65,10 +64,9 @@ tipo_selecionado = st.sidebar.multiselect(
     default=df["Tipo"].unique()
 )
 
-# Aplicando filtro
 df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 
-# 📊 Exibição
+# 📊 EXIBIÇÃO
 st.title("🚛 Base Omni - Operacional")
 
 st.dataframe(df_filtrado)
