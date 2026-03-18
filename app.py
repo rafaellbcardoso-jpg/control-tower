@@ -41,9 +41,9 @@ blobs = list(bucket.list_blobs(prefix="omnilink/"))
 dfs = []
 
 for blob in blobs:
-    if blob.name.endswith(".csv"):
+   if blob.name.endswith(".csv") and blob.content_type == "text/csv":
         content = blob.download_as_bytes()
-        df_temp = pd.read_csv(BytesIO(content))
+        df_temp = pd.read_csv(BytesIO(content), sep=";", encoding="latin1")
         dfs.append(df_temp)
 
 if not dfs:
