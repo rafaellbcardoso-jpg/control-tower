@@ -33,6 +33,18 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
-st.title("🚛 Base Omni")
+# 🔽 FILTRANDO SOMENTE AS COLUNAS NECESSÁRIAS
+colunas_desejadas = [
+    "Placa",
+    "Proprietário",
+    "Data de Comunicação",
+    "Latitude",
+    "Longitude"
+]
+
+# Mantém só as colunas que existem no dataset (evita erro)
+df = df[[col for col in colunas_desejadas if col in df.columns]]
+
+st.title("🚛 Base Omni - Filtrada")
 
 st.dataframe(df)
