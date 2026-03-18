@@ -132,5 +132,5 @@ df_filtrado = df_final[
 # =========================
 # EXIBIR
 # =========================
-st.dataframe(df_filtrado.drop(columns=["Posição_dt"]))
+
 st.dataframe(df_final)
