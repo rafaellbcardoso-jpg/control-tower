@@ -73,7 +73,15 @@ df = df.drop_duplicates(subset="Placa", keep="first")
 geolocator = Nominatim(user_agent="control_tower")
 reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
 
+# 🔥 CACHE
+cache_localizacao = {}
+
 def obter_localizacao(lat, lon):
+    chave = (lat, lon)
+    
+    if chave in cache_localizacao:
+        return cache_localizacao[chave]
+
     try:
         location = reverse((lat, lon), language="pt")
         if location and location.raw.get("address"):
@@ -89,8 +97,11 @@ def obter_localizacao(lat, lon):
             uf = address.get("state_code") or address.get("state")
             
             if cidade and uf:
-                return f"{cidade} - {uf}"
+                resultado = f"{cidade} - {uf}"
+                cache_localizacao[chave] = resultado
+                return resultado
         
+        cache_localizacao[chave] = "Não identificado"
         return "Não identificado"
     
     except:
@@ -103,7 +114,6 @@ df["Localização Atual"] = df.apply(
     ) if pd.notna(row["Latitude_corrigida"]) else "Sem coordenada",
     axis=1
 )
-
 # 🇧🇷 FORMATAÇÃO DATA
 df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
