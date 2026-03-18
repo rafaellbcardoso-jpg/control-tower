@@ -66,16 +66,21 @@ df["Tipo_Frota"] = df["Proprietário"].apply(
 # =========================
 # 📅 FILTRO DE DATA
 # =========================
-st.subheader("📅 Filtro de Data")
+from datetime import datetime, timedelta
+
+# =========================
+# 📅 FILTRO DE DATA (SIDEBAR)
+# =========================
+st.sidebar.subheader("📅 Período")
 
 df["Data_Hora"] = pd.to_datetime(df["Data_Hora"], errors="coerce")
 
-data_min = df["Data_Hora"].min()
-data_max = df["Data_Hora"].max()
+hoje = datetime.today().date()
+ontem = hoje - timedelta(days=1)
 
-data_inicio, data_fim = st.date_input(
+data_inicio, data_fim = st.sidebar.date_input(
     "Selecione o período",
-    [data_min, data_max]
+    [ontem, hoje]
 )
 
 df = df[
