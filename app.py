@@ -38,6 +38,10 @@ if not dfs:
     st.stop()
 
 df = pd.concat(dfs, ignore_index=True)
+# 👇 COLOCA AQUI
+st.write("Qtd arquivos:", len(dfs))
+st.write("Qtd linhas df:", len(df))
+st.write(df.head())
 
 # =========================
 # TRATAR COLUNAS (SÓ LIMPAR ESPAÇO)
