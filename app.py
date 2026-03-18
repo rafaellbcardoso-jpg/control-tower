@@ -65,6 +65,8 @@ df["Posição"] = pd.to_datetime(
     .str[4:24],
     errors="coerce"
 )
+# 👉 FORMATA PADRÃO BR
+df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
 # NÃO CONVERTER DATA (mantém original)
 # df["Data de comunicação"] = pd.to_datetime(...)
