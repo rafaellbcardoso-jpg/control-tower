@@ -167,7 +167,7 @@ if dfs_pv:
     # =========================
     # 🔧 DATA PV
     # =========================
-    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+    df_pv["Data_str"] = df_pv["Data"].astype(str)
 
     # =========================
     # 🔥 MATCH POR CONTÉM
@@ -180,7 +180,7 @@ if dfs_pv:
         match = df_pv[df_pv["Placas_clean"].str.contains(placa, na=False)]
 
         if not match.empty:
-            data = match["Data"].max()
+            data = match["Data_str"].iloc[0]
         else:
             data = None
 
