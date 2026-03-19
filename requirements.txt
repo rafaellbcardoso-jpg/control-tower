@@ -5,3 +5,4 @@ google-auth
 geopy
 scikit-learn
 openpyxl
+plotly
