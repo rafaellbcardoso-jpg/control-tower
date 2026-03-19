@@ -466,6 +466,7 @@ df["Motorista"] = motoristas
 # =========================
 df = df[[
     "Tipo",
+    "Operação",
     "Placa",
     "Posição",
     "Localização Atual",
