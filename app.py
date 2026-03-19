@@ -494,13 +494,14 @@ if "Operação" not in df.columns:
     df["Operação"] = None
 
 # 🔹 FILTRO TIPO
+
 st.sidebar.title("Filtros")
 tipo_selecionado = st.sidebar.multiselect(
     "Tipo",
     options=df["Tipo"].unique(),
     default=df["Tipo"].unique()
-) df_filtrado = df[df["Tipo"].isin(tipo_selecionado)
-] 
+) 
+df_filtrado = df[df["Tipo"].isin(tipo_selecionado)] 
 
 # =========================
 # 📊 TABELA
