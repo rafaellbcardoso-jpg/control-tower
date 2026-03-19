@@ -487,7 +487,7 @@ df["Motorista"] = motoristas
 # =========================
 
 # 🔹 garante datetime na robo
-df_pv["DATA"] = pd.to_datetime(df_pv["DATA"], errors="coerce", dayfirst=True)
+df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
 
 # 🔹 lista única de motoristas da base nova
 motoristas_lista = df_moto["Motoristas"].dropna().unique()
@@ -499,7 +499,7 @@ for motorista in motoristas_lista:
     df_match = df_pv[df_pv["Motoristas"] == motorista]
 
     if not df_match.empty:
-        ultima_data = df_match["DATA"].max()
+        ultima_data = df_match["Data"].max()
         horas = (agora - ultima_data).total_seconds() / 3600 if pd.notnull(ultima_data) else None
     else:
         horas = None
