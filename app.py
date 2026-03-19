@@ -47,6 +47,14 @@ df["Posição"] = pd.to_datetime(
     errors="coerce"
 )
 
+from datetime import datetime
+hoje = datetime.now().date()
+
+df["Posição"] = df["Posição"].apply(
+    lambda x: x.strftime("%H:%M:%S") if pd.notnull(x) and x.date() == hoje 
+    else (x.strftime("%Y-%m-%d %H:%M:%S") if pd.notnull(x) else None)
+)
+
 # =========================
 # 🧠 TIPO
 # =========================
