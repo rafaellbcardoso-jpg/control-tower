@@ -180,7 +180,7 @@ for _, row in df.iterrows():
     placa = row["Placa_clean"]
 
     if not df_pv.empty:
-        qtd = df_pv["Placas_clean"].str.contains(placa, na=False).sum()
+        qtd = df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True).sum()
     else:
         qtd = 0
 
@@ -191,8 +191,9 @@ df["Qtd PV"] = contagens
 # 🔥 ÚLTIMA DATA PV
 # =========================
 if not df_pv.empty:
-    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
-
+    df_match = df_pv[
+    df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+]
 datas = []
 
 for _, row in df.iterrows():
@@ -221,7 +222,10 @@ for _, row in df.iterrows():
     placa = row["Placa_clean"]
 
     if not df_pv.empty:
-        qtd = df_pv["Placas_clean"].str.contains(placa, na=False).sum()
+    df_match = df_pv[
+    (df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)) &
+    (df_pv["Data"].notna())
+] 
     else:
         qtd = 0
 
