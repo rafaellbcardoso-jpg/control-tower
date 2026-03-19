@@ -591,19 +591,35 @@ df = df[[
 ]]
 
 # =========================
-# 📊 TABELA
+# 📊 OMNILINK
 # =========================
 st.title("🚛 Omnilink")
 
-st.dataframe(df_filtrado, use_container_width=True)
+# 🔹 FILTROS LOCAIS
+col1, col2 = st.columns(2)
 
-# 👇 AQUI
-st.subheader("🧑‍✈️ Motoristas Disponíveis (>12h)")
+with col1:
+    tipo_selecionado = st.multiselect(
+        "Tipo",
+        options=df["Tipo"].dropna().unique(),
+        default=df["Tipo"].dropna().unique()
+    )
 
-st.dataframe(
-    df_disp[["Motoristas", "Horas sem viagem","Disponibilidade","Status"]],
-    use_container_width=True
-)
+with col2:
+    operacao_selecionada = st.multiselect(
+        "Operação",
+        options=df["Operação"].dropna().unique(),
+        default=df["Operação"].dropna().unique()
+    )
+
+# 🔹 APLICA FILTRO LOCAL
+df_omni = df[
+    df["Tipo"].isin(tipo_selecionado) &
+    df["Operação"].isin(operacao_selecionada)
+]
+
+# 🔹 TABELA
+st.dataframe(df_omni, use_container_width=True)
 
 # =========================
 # 🗺️ MAPA
