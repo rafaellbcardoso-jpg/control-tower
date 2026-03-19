@@ -678,17 +678,22 @@ operacao = len(df_frota_hoje[df_frota_hoje["Status"] == "🟡 Em operação"])
 nao_usados = len(df_frota_hoje[df_frota_hoje["Status"] == "🔴 Não utilizado"])
 
 # 🔹 FUNÇÃO PRA CRIAR DONUT
-def criar_donut(valor, total, titulo):
+
+def criar_donut(valor, total, titulo, cor):
 
     restante = total - valor
 
     fig = px.pie(
-        names=["", titulo],
+        names=["Restante", titulo],
         values=[restante, valor],
-        hole=0.7
+        hole=0.6
     )
 
-    fig.update_traces(textinfo='none')
+    fig.update_traces(
+        marker=dict(colors=["#2b3b52", cor]),
+        textinfo='percent',
+        textfont_size=12
+    )
 
     fig.update_layout(
         showlegend=False,
@@ -702,21 +707,21 @@ def criar_donut(valor, total, titulo):
     )
 
     return fig
-
+    
 # 🔹 LAYOUT 4 COLUNAS
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.plotly_chart(criar_donut(total, total, "Total"), use_container_width=True)
+    st.plotly_chart(criar_donut(total, total, "Total","#1f77b4"), use_container_width=True)
 
 with col2:
-    st.plotly_chart(criar_donut(usados, total, "Usados"), use_container_width=True)
+    st.plotly_chart(criar_donut(usados, total, "Usados","#00cc96"), use_container_width=True)
 
 with col3:
-    st.plotly_chart(criar_donut(operacao, total, "Operação"), use_container_width=True)
+    st.plotly_chart(criar_donut(operacao, total, "Operação","#f2c94c"), use_container_width=True)
 
 with col4:
-    st.plotly_chart(criar_donut(nao_usados, total, "Não usados"), use_container_width=True)
+    st.plotly_chart(criar_donut(nao_usados, total, "Não usados","#ef553b"), use_container_width=True)
 
 # =========================
 # 📊 OMNILINK
