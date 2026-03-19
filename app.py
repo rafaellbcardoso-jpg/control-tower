@@ -294,7 +294,30 @@ for _, row in df.iterrows():
 
 df["Qtd PV Data"] = qtd_datas
 
+# =========================
+# 🔥 MOTORISTA ÚLTIMA DATA PV
+# =========================
+motoristas = []
 
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
+        
+        if not df_match.empty:
+            df_match = df_match.sort_values(by="Data", ascending=False)
+            motorista = df_match.iloc[0]["Motoristas"]
+        else:
+            motorista = None
+    else:
+        motorista = None
+
+    motoristas.append(motorista)
+
+df["Motorista"] = motoristas
 # =========================
 # 🔽 COLUNAS
 # =========================
@@ -305,6 +328,7 @@ df = df[[
     "Qtd PV",
     "Qtd PV Data",
     "Localização Atual",
+    "Motorista",
     "Ultima Data PV"
 ]]
 # =========================
