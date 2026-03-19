@@ -271,6 +271,15 @@ for _, row in df.iterrows():
 
 df["Programação"] = datas
 
+from datetime import datetime
+
+hoje = datetime.now().date()
+
+df["Programação"] = df["Programação"].apply(
+    lambda x: "Hoje" if pd.notnull(x) and x.date() == hoje else (
+        x.strftime("%Y-%m-%d") if pd.notnull(x) else None
+    )
+)
 
 # =========================
 # 🔥 CONTAGEM PV COM DATA
