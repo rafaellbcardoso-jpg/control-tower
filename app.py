@@ -486,23 +486,18 @@ df = df[[
 # =========================
 st.sidebar.title("Filtros")
 
-# 🔹 GARANTE COLUNAS (não aparecem na tabela, só evita erro)
+# 🔹 GARANTE COLUNA
 if "Tipo" not in df.columns:
     df["Tipo"] = None
 
-if "Operação" not in df.columns:
-    df["Operação"] = None
-
 # 🔹 FILTRO TIPO
-
-st.sidebar.title("Filtros")
 tipo_selecionado = st.sidebar.multiselect(
     "Tipo",
-    options=df["Tipo"].unique(),
-    default=df["Tipo"].unique()
-) 
-df_filtrado = df[df["Tipo"].isin(tipo_selecionado)] 
+    options=df["Tipo"].dropna().unique(),
+    default=df["Tipo"].dropna().unique()
+)
 
+df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 # =========================
 # 📊 TABELA
 # =========================
