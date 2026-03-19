@@ -301,7 +301,7 @@ for _, row in df.iterrows():
             linha = df_match.sort_values("Data", ascending=False).iloc[0]
 
             origem = linha.get("Origem", "")
-            uf_origem = linha.get("UF", "")
+            uf_origem = linha.get("Orig. UF", "")
             destino = linha.get("Destino", "")
             uf_destino = linha.get("Dest. UF", "")
 
