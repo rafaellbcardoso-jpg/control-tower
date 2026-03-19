@@ -504,10 +504,8 @@ df["Motorista"] = motoristas
 # 🧠 DISPONIBILIDADE MOTORISTAS (BASE NOVA)
 # =========================
 
-# 🔹 garante datetime na robo
 df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
 
-# 🔹 lista única de motoristas da base nova
 motoristas_lista = df_moto["Motoristas"].dropna().unique()
 
 registros = []
@@ -523,19 +521,16 @@ for motorista in motoristas_lista:
         horas = None
 
     registros.append({
-        "Motorista": motorista,
+        "Motoristas": motorista,  # 🔥 corrigido aqui
         "Horas sem viagem": horas
     })
 
 df_disp = pd.DataFrame(registros)
 
-# 🔹 filtra > 12h
 df_disp = df_disp[df_disp["Horas sem viagem"] > 12]
 
-# 🔹 arredonda
 df_disp["Horas sem viagem"] = df_disp["Horas sem viagem"].round(1)
 
-# 🔹 ordena
 df_disp = df_disp.sort_values("Horas sem viagem", ascending=False)
 # =========================
 # 🔽 COLUNAS
