@@ -482,21 +482,36 @@ df = df[[
     "Motorista"
 ]]
 # =========================
-# 🎛️ FILTRO
+# 🎯 FILTROS
 # =========================
 st.sidebar.title("Filtros")
 
+# 🔹 FILTRO TIPO
 tipo_selecionado = st.sidebar.multiselect(
     "Tipo",
-    options=df["Tipo"].unique(),
-    default=df["Tipo"].unique()
+    options=sorted(df["Tipo"].dropna().unique()),
+    default=sorted(df["Tipo"].dropna().unique())
 )
 
-df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
+# 🔹 FILTRO OPERAÇÃO
+operacao_selecionada = st.sidebar.multiselect(
+    "Operação",
+    options=sorted(df["Operação"].dropna().unique()),
+    default=sorted(df["Operação"].dropna().unique())
+)
+
+# =========================
+# 🔍 APLICAR FILTROS
+# =========================
+df_filtrado = df[
+    df["Tipo"].isin(tipo_selecionado) &
+    df["Operação"].isin(operacao_selecionada)
+]
 
 # =========================
 # 📊 TABELA
 # =========================
+st.dataframe(df_filtrado, use_container_width=True)
 st.title("🚛 Base Omni - Última Posição por Placa")
 
 st.dataframe(df_filtrado)
