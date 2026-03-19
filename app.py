@@ -191,21 +191,19 @@ df["Qtd PV"] = contagens
 # 🔥 ÚLTIMA DATA PV
 # =========================
 if not df_pv.empty:
-    df_match = df_pv[
-    df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
-]
+    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+
 datas = []
 
 for _, row in df.iterrows():
     placa = row["Placa_clean"]
 
     if not df_pv.empty:
-        df_match = df_pv[df_pv["Placas_clean"].str.contains(placa, na=False)]
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
         
-        if not df_match.empty:
-            data = df_match["Data"].dropna().max()
-        else:
-            data = None
+        data = df_match["Data"].max() if not df_match.empty else None
     else:
         data = None
 
