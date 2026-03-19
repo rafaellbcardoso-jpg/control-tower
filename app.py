@@ -129,8 +129,7 @@ df = df.merge(
     df_validos[["Placa", "Localização Atual"]],
     on="Placa",
     how="left"
-)
-# =========================
+)# =========================
 # 🔽 BASE PV (BUCKET)
 # =========================
 blobs_pv = list(bucket.list_blobs(prefix="robo/"))
@@ -146,27 +145,44 @@ for blob in blobs_pv:
 if dfs_pv:
     df_pv = pd.concat(dfs_pv, ignore_index=True)
 
-    # 🔧 NORMALIZAR PLACAS
+    # =========================
+    # 🔧 TRATAR PLACAS
+    # =========================
     df_pv["Placas"] = df_pv["Placas"].astype(str)
+
+    # separa múltiplas placas
     df_pv["Placas"] = df_pv["Placas"].str.replace("//", ",")
-    df_pv["Placas"] = df_pv["Placas"].str.replace("-", "")
     df_pv["Placas"] = df_pv["Placas"].str.split(",")
 
     df_pv = df_pv.explode("Placas")
-    df_pv["Placas"] = df_pv["Placas"].str.strip()
-    df_pv["Placas"] = df_pv["Placas"].str.replace(r"\D", "", regex=True)
 
-    # 🔧 DATA PV
+    # limpa caracteres
+    df_pv["Placas"] = df_pv["Placas"].str.replace("-", "")
+    df_pv["Placas"] = df_pv["Placas"].str.replace(r"\D", "", regex=True)
+    df_pv["Placas"] = df_pv["Placas"].str.strip()
+
+    # remove vazios
+    df_pv = df_pv[df_pv["Placas"] != ""]
+
+    # =========================
+    # 🔧 DATA
+    # =========================
     df_pv["Data_PV"] = pd.to_datetime(df_pv["Data"], errors="coerce")
 
+    # =========================
     # 🔥 ÚLTIMA DATA POR PLACA
-    df_pv = df_pv.sort_values(by="Data_PV", ascending=False)
-    df_pv = df_pv.drop_duplicates(subset="Placas", keep="first")
+    # =========================
+    df_pv = df_pv.sort_values("Data_PV", ascending=False)
+    df_pv = df_pv.drop_duplicates("Placas")
 
+    # =========================
     # 🔗 NORMALIZAR PLACA OMNI
+    # =========================
     df["Placa_clean"] = df["Placa"].astype(str).str.replace(r"\D", "", regex=True)
 
-    # 🔗 MERGE PV
+    # =========================
+    # 🔗 MERGE
+    # =========================
     df = df.merge(
         df_pv[["Placas", "Data_PV"]],
         left_on="Placa_clean",
@@ -174,10 +190,17 @@ if dfs_pv:
         how="left"
     )
 
-    # 🇧🇷 FORMATAR DATA PV
+    # =========================
+    # 🇧🇷 FORMATAR DATA FINAL
+    # =========================
     df["Última PV"] = df["Data_PV"].dt.strftime("%d/%m/%Y %H:%M:%S")
 
+    # limpeza
     df.drop(columns=["Placa_clean", "Placas", "Data_PV"], inplace=True)
+
+# garante coluna mesmo se não houver PV
+if "Última PV" not in df.columns:
+    df["Última PV"] = None
 # =========================
 # 🇧🇷 FORMATAÇÃO DATA
 # =========================
