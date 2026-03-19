@@ -671,15 +671,52 @@ df_frota_hoje["Status"] = status
 resumo = df_frota_hoje["Status"].value_counts().reset_index()
 resumo.columns = ["Status", "Qtd"]
 
-# 🔹 GRÁFICO
-fig = px.pie(
-    resumo,
-    names="Status",
-    values="Qtd",
-    hole=0.5
-)
+# 🔹 CONTAGENS
+total = len(df_frota_hoje)
+usados = len(df_frota_hoje[df_frota_hoje["Status"] == "🟢 Usado hoje"])
+operacao = len(df_frota_hoje[df_frota_hoje["Status"] == "🟡 Em operação"])
+nao_usados = len(df_frota_hoje[df_frota_hoje["Status"] == "🔴 Não utilizado"])
 
-st.plotly_chart(fig, use_container_width=True)
+# 🔹 FUNÇÃO PRA CRIAR DONUT
+def criar_donut(valor, total, titulo):
+
+    restante = total - valor
+
+    fig = px.pie(
+        names=["", titulo],
+        values=[restante, valor],
+        hole=0.7
+    )
+
+    fig.update_traces(textinfo='none')
+
+    fig.update_layout(
+        showlegend=False,
+        margin=dict(t=10, b=10, l=10, r=10),
+        annotations=[dict(
+            text=f"{valor}<br>{round((valor/total)*100,1) if total > 0 else 0}%",
+            x=0.5, y=0.5,
+            font_size=16,
+            showarrow=False
+        )]
+    )
+
+    return fig
+
+# 🔹 LAYOUT 4 COLUNAS
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.plotly_chart(criar_donut(total, total, "Total"), use_container_width=True)
+
+with col2:
+    st.plotly_chart(criar_donut(usados, total, "Usados"), use_container_width=True)
+
+with col3:
+    st.plotly_chart(criar_donut(operacao, total, "Operação"), use_container_width=True)
+
+with col4:
+    st.plotly_chart(criar_donut(nao_usados, total, "Não usados"), use_container_width=True)
 
 # =========================
 # 📊 OMNILINK
