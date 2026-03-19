@@ -280,7 +280,42 @@ df["Programação"] = df["Programação"].apply(
         x.strftime("%Y-%m-%d") if pd.notnull(x) else None
     )
 )
+# =========================
+# 🚀 ROTA (SE FOR HOJE)
+# =========================
 
+rotas = []
+
+for _, row in df.iterrows():
+
+    if row["Programação"] == "Hoje":
+
+        placa = row["Placa_clean"]
+
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
+
+        if not df_match.empty:
+
+            linha = df_match.sort_values("Data", ascending=False).iloc[0]
+
+            origem = linha.get("Origem", "")
+            uf_origem = linha.get("UF", "")
+            destino = linha.get("Destino", "")
+            uf_destino = linha.get("Dest. UF", "")
+
+            rota = f"{origem} - {uf_origem} x {destino} - {uf_destino}"
+
+        else:
+            rota = None
+
+    else:
+        rota = None
+
+    rotas.append(rota)
+
+df["Rota"] = rotas
 # =========================
 # 🔥 CONTAGEM PV COM DATA
 # =========================
@@ -336,6 +371,7 @@ df = df[[
     "Posição",
     "Localização Atual",
     "Programação",
+    "Rota",
     "Motorista"
 ]]
 # =========================
