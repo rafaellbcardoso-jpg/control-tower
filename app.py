@@ -610,7 +610,9 @@ df_pv["DT_Destino"] = pd.to_datetime(df_pv["DT_Destino"], errors="coerce", dayfi
 finalizacoes = []
 
 for _, row in df_frota_hoje.iterrows():
-    placa = row["Placa_clean"]
+
+    # 🔥 CORREÇÃO AQUI
+    placa = str(row["Placa"]).upper().replace("-", "").replace(" ", "")
 
     df_match = df_pv[
         df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
@@ -678,8 +680,6 @@ fig = px.pie(
 )
 
 st.plotly_chart(fig, use_container_width=True)
-
-
 
 # =========================
 # 📊 OMNILINK
