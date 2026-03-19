@@ -289,6 +289,44 @@ df["Programação"] = df["Programação"].apply(
     )
 )
 # =========================
+# 🧠 OPERAÇÃO (ÚLTIMA)
+# =========================
+
+operacoes = []
+
+for _, row in df.iterrows():
+
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
+
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
+
+        if not df_match.empty:
+
+            # pega a última data
+            df_match = df_match.copy()
+            df_match["Data"] = pd.to_datetime(df_match["Data"], errors="coerce")
+
+            ultima_data = df_match["Data"].dropna().max()
+
+            # filtra a linha da última data
+            linha = df_match[df_match["Data"] == ultima_data].iloc[0]
+
+            operacao = linha.get("Operação", None)
+
+        else:
+            operacao = None
+
+    else:
+        operacao = None
+
+    operacoes.append(operacao)
+
+df["Operação"] = operacoes
+# =========================
 # 🚀 ROTA (SE FOR HOJE)
 # =========================
 
