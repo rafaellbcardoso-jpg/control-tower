@@ -481,6 +481,39 @@ for _, row in df.iterrows():
     motoristas.append(motorista)
 
 df["Motorista"] = motoristas
+
+# =========================
+# 🧠 DISPONIBILIDADE MOTORISTAS
+# =========================
+
+# 🔹 garante datetime
+df_pv["Data_Hora2"] = pd.to_datetime(df_pv["Data_Hora2"], errors="coerce")
+
+# 🔹 filtra apenas Lemar
+df_lemar = df_pv[
+    df_pv["Tipo"].astype(str).str.upper().str.contains("LEMAR", na=False)
+]
+
+# 🔹 última viagem por motorista
+df_disp = (
+    df_lemar.sort_values("Data_Hora2", ascending=False)
+    .drop_duplicates(subset="Motoristas", keep="first")
+)
+
+# 🔹 calcula horas sem viagem
+df_disp["Horas sem viagem"] = (
+    (agora - df_disp["Data_Hora2"]).dt.total_seconds() / 3600
+)
+
+# 🔹 filtra disponíveis (>12h)
+df_disp = df_disp[df_disp["Horas sem viagem"] > 12]
+
+# 🔹 arredonda
+df_disp["Horas sem viagem"] = df_disp["Horas sem viagem"].round(1)
+
+# 🔹 ordena (quem está mais tempo parado primeiro)
+df_disp = df_disp.sort_values("Horas sem viagem", ascending=False)
+
 # =========================
 # 🔽 COLUNAS
 # =========================
