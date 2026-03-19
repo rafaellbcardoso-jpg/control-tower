@@ -618,8 +618,18 @@ df_omni = df[
     df["Operação"].isin(operacao_selecionada)
 ]
 
-# 🔹 TABELA
+# 🔹 TABELA OMNILINK
 st.dataframe(df_omni, use_container_width=True)
+
+# =========================
+# 🧑‍✈️ MOTORISTAS
+# =========================
+st.subheader("🧑‍✈️ Motoristas Disponíveis (>12h)")
+
+st.dataframe(
+    df_disp[["Motoristas", "Horas sem viagem","Disponibilidade","Status"]],
+    use_container_width=True
+)
 
 # =========================
 # 🗺️ MAPA
