@@ -359,8 +359,9 @@ for _, row in df.iterrows():
     rotas.append(rota)
 
 df["Rota"] = rotas
+
 # =========================
-# 🧠 ANDAMENTO (ETA)
+# 🧠 ANDAMENTO (ROBUSTO)
 # =========================
 
 andamentos = []
@@ -380,24 +381,38 @@ for _, row in df.iterrows():
             linha = df_match.sort_values("Data", ascending=False).iloc[0]
 
             eta_str = linha.get("ETA", None)
+            eta2_str = linha.get("ETA_2", None)
+            data_destino = linha.get("DT_Destino", None)
 
-            if pd.notnull(eta_str) and eta_str != "":
+            if pd.notnull(eta_str) and pd.notnull(eta2_str) and pd.notnull(data_destino):
 
                 try:
-                    # transforma ETA (HH:MM) em datetime hoje
-                    eta = datetime.strptime(eta_str, "%H:%M")
-                    eta = eta.replace(
+                    # INÍCIO (ETA)
+                    eta_inicio = datetime.strptime(eta_str, "%H:%M").replace(
                         year=agora.year,
                         month=agora.month,
                         day=agora.day
                     )
 
-                    diferenca = eta - agora
+                    # FIM (DT_Destino + ETA_2)
+                    data_destino = pd.to_datetime(data_destino, errors="coerce")
 
-                    if agora > eta:
+                    eta_fim = datetime.strptime(eta2_str, "%H:%M")
+                    eta_fim = eta_fim.replace(
+                        year=data_destino.year,
+                        month=data_destino.month,
+                        day=data_destino.day
+                    )
+
+                    # 🔥 LÓGICA
+                    if agora > eta_fim:
+                        andamento = "Finalizado"
+
+                    elif eta_inicio <= agora <= eta_fim:
                         andamento = "Em andamento"
 
                     else:
+                        diferenca = eta_inicio - agora
                         horas = diferenca.total_seconds() / 3600
 
                         if horas > 4:
@@ -419,6 +434,7 @@ for _, row in df.iterrows():
     andamentos.append(andamento)
 
 df["Andamento"] = andamentos
+
 # =========================
 # 🔥 CONTAGEM PV COM DATA
 # =========================
