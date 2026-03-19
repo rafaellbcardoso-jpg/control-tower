@@ -591,27 +591,23 @@ df = df[[
 ]]
 
 # =========================
-# 📊 DASHBOARD FROTA HOJE
+# 📊 VALIDAÇÃO FROTA HOJE
 # =========================
 
-st.subheader("📊 Status da Frota (Hoje)")
+st.subheader("📊 Validação Frota Hoje")
 
-import plotly.express as px
-
-# 🔹 FILTRA FROTA QUE POSICIONOU HOJE
 df_frota_hoje = df[
     (df["Tipo"] == "Frota") &
     (df["Posição"].dt.date == hoje)
 ].copy()
 
-# 🔹 MONTA FINALIZAÇÃO (DT_Destino + ETA_2)
-df_pv["DT_Destino"] = pd.to_datetime(df_pv["DT_Destino"], errors="coerce", dayfirst=True)
+total = len(df_frota_hoje)
 
+# 🔹 BUSCA FINALIZAÇÃO
 finalizacoes = []
 
 for _, row in df_frota_hoje.iterrows():
 
-    # 🔥 CORREÇÃO AQUI
     placa = str(row["Placa"]).upper().replace("-", "").replace(" ", "")
 
     df_match = df_pv[
@@ -627,6 +623,7 @@ for _, row in df_frota_hoje.iterrows():
         if pd.notnull(data_destino) and pd.notnull(eta2):
             try:
                 hora = pd.to_datetime(eta2).to_pydatetime()
+
                 final = hora.replace(
                     year=data_destino.year,
                     month=data_destino.month,
@@ -651,77 +648,27 @@ for _, row in df_frota_hoje.iterrows():
     final = row["Finalizacao"]
 
     if pd.isna(final):
-        status.append("🔴 Não utilizado")
+        status.append("Sem dados")
 
     elif final.date() == hoje:
         if final > agora:
-            status.append("🟡 Em operação")
+            status.append("Em operação")
         else:
-            status.append("🟢 Usado hoje")
+            status.append("Usado hoje")
 
     elif final < datetime.combine(hoje, datetime.min.time()):
-        status.append("🔴 Não utilizado")
+        status.append("Não utilizado")
 
     else:
-        status.append("🔴 Não utilizado")
+        status.append("Não utilizado")
 
 df_frota_hoje["Status"] = status
 
-# 🔹 CONTAGEM
+# 🔹 RESUMO
 resumo = df_frota_hoje["Status"].value_counts().reset_index()
-resumo.columns = ["Status", "Qtd"]
+resumo.columns = ["Status", "Quantidade"]
 
-# 🔹 CONTAGENS
-total = len(df_frota_hoje)
-usados = len(df_frota_hoje[df_frota_hoje["Status"] == "🟢 Usado hoje"])
-operacao = len(df_frota_hoje[df_frota_hoje["Status"] == "🟡 Em operação"])
-nao_usados = len(df_frota_hoje[df_frota_hoje["Status"] == "🔴 Não utilizado"])
-
-# 🔹 FUNÇÃO PRA CRIAR DONUT
-
-def criar_donut(valor, total, titulo, cor):
-
-    restante = total - valor
-
-    fig = px.pie(
-        names=["Restante", titulo],
-        values=[restante, valor],
-        hole=0.6
-    )
-
-    fig.update_traces(
-        marker=dict(colors=["#2b3b52", cor]),
-        textinfo='percent',
-        textfont_size=12
-    )
-
-    fig.update_layout(
-        showlegend=False,
-        margin=dict(t=10, b=10, l=10, r=10),
-        annotations=[dict(
-            text=f"{valor}<br>{round((valor/total)*100,1) if total > 0 else 0}%",
-            x=0.5, y=0.5,
-            font_size=16,
-            showarrow=False
-        )]
-    )
-
-    return fig
-    
-# 🔹 LAYOUT 4 COLUNAS
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.plotly_chart(criar_donut(total, total, "Total","#1f77b4"), use_container_width=True)
-
-with col2:
-    st.plotly_chart(criar_donut(usados, total, "Usados","#00cc96"), use_container_width=True)
-
-with col3:
-    st.plotly_chart(criar_donut(operacao, total, "Operação","#f2c94c"), use_container_width=True)
-
-with col4:
-    st.plotly_chart(criar_donut(nao_usados, total, "Não usados","#ef553b"), use_container_width=True)
+st.dataframe(resumo, use_container_width=True)
 
 # =========================
 # 📊 OMNILINK
