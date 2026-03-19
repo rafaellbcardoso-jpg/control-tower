@@ -322,6 +322,7 @@ df["Motorista"] = motoristas
 # 🔽 COLUNAS
 # =========================
 df = df[[
+    "Tipo",
     "Placa",
     "Posição",
     "Localização Atual",
