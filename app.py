@@ -144,56 +144,50 @@ for blob in blobs_pv:
         df_temp = pd.read_csv(BytesIO(content))
         dfs_pv.append(df_temp)
 
+# 🔒 garante que df_pv sempre existe
+df_pv = pd.DataFrame()
+
 if dfs_pv:
     df_pv = pd.concat(dfs_pv, ignore_index=True)
 
-    # =========================
-    # 🔧 NORMALIZAR PV
-    # =========================
-    df_pv["Placas_str"] = df_pv["Placas"].astype(str)
-
+# =========================
+# 🔧 NORMALIZAR PV
+# =========================
+if not df_pv.empty:
     df_pv["Placas_clean"] = (
-        df_pv["Placas_str"]
-        .str.replace("-", "")
-        .str.replace("/", "")
-        .str.replace(" ", "")
+        df_pv["Placas"]
+        .astype(str)
+        .str.upper()
+        .str.replace(r"[^A-Z0-9]", "", regex=True)
     )
 
-    # =========================
-    # 🔧 NORMALIZAR OMNI
-    # =========================
-    df["Placa_clean"] = df["Placa"].astype(str).str.replace(r"\W", "", regex=True)
+# =========================
+# 🔧 NORMALIZAR OMNI
+# =========================
+df["Placa_clean"] = (
+    df["Placa"]
+    .astype(str)
+    .str.upper()
+    .str.replace(r"[^A-Z0-9]", "", regex=True)
+)
 
-    # =========================
-    # 🔧 DATA PV
-    # =========================
-    df_pv["Data_str"] = df_pv["Data"].astype(str)
+# =========================
+# 🔥 CONTAGEM DE MATCH
+# =========================
+contagens = []
 
-    # =========================
-    # 🔥 MATCH POR CONTÉM
-    # =========================
-    resultados = []
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
 
-    for _, row in df.iterrows():
-        placa = row["Placa_clean"]
+    if not df_pv.empty:
+        qtd = df_pv["Placas_clean"].str.contains(placa, na=False).sum()
+    else:
+        qtd = 0
 
-        match = df_pv[df_pv["Placas_clean"].str.contains(placa, na=False)]
+    contagens.append(qtd)
 
-        if not match.empty:
-            data = match["Data_str"].iloc[0]
-        else:
-            data = None
+df["Qtd PV"] = contagens
 
-        resultados.append(data)
-
-    df["Última PV"] = pd.to_datetime(resultados).dt.strftime("%d/%m/%Y %H:%M:%S")
-
-    # limpeza
-    df.drop(columns=["Placa_clean"], inplace=True)
-
-# garante coluna se não houver PV
-if "Última PV" not in df.columns:
-    df["Última PV"] = None
 # =========================
 # 🔽 COLUNAS
 # =========================
@@ -201,7 +195,7 @@ df = df[[
     "Placa",
     "Tipo",
     "Posição",
-    "Última PV",
+    "Qtd PV",
     "Localização Atual"
 ]]
 
