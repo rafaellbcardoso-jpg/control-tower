@@ -603,6 +603,17 @@ df_frota_hoje = df[
 
 total = len(df_frota_hoje)
 
+st.subheader("🔍 Amostra Base PV (robo)")
+
+# pega algumas placas da frota hoje
+placas_teste = df_frota_hoje["Placa"].head(10)
+
+df_debug = df_pv[
+    df_pv["Placas"].isin(placas_teste)
+].copy()
+
+st.dataframe(df_debug, use_container_width=True)
+
 # 🔹 BUSCA FINALIZAÇÃO
 finalizacoes = []
 
