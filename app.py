@@ -29,6 +29,24 @@ client = storage.Client(
 bucket = client.bucket(BUCKET_NAME)
 
 # =========================
+# 🔽 BASE MOTORISTAS (BUCKET)
+# =========================
+blobs_moto = list(bucket.list_blobs(prefix="motoristas/"))
+
+dfs_moto = []
+
+for blob in blobs_moto:
+    if blob.name.endswith(".xlsx"):
+        content = blob.download_as_bytes()
+        df_temp = pd.read_excel(BytesIO(content))
+        dfs_moto.append(df_temp)
+
+df_moto = pd.DataFrame()
+
+if dfs_moto:
+    df_moto = pd.concat(dfs_moto, ignore_index=True)
+
+# =========================
 # 🔽 BASE OMNILINK
 # =========================
 blobs = list(bucket.list_blobs(prefix="omnilink/"))
