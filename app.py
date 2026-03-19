@@ -598,7 +598,7 @@ st.dataframe(df_filtrado, use_container_width=True)
 st.subheader("🧑‍✈️ Motoristas Disponíveis (>12h)")
 
 st.dataframe(
-    df_disp[["Motoristas", "Horas sem viagem"]],
+    df_disp[["Motoristas", "Horas sem viagem","Status"]],
     use_container_width=True
 )
 
