@@ -440,6 +440,7 @@ df = df[[
     "Localização Atual",
     "Programação",
     "Rota",
+    "Andamento",
     "Motorista"
 ]]
 # =========================
