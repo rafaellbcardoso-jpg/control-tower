@@ -292,6 +292,9 @@ df["Programação"] = df["Programação"].apply(
 # 🧠 OPERAÇÃO (ÚLTIMA)
 # =========================
 
+# 🔧 garante que Data está correta
+df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
+
 operacoes = []
 
 for _, row in df.iterrows():
@@ -319,6 +322,7 @@ for _, row in df.iterrows():
     operacoes.append(operacao)
 
 df["Operação"] = operacoes
+
 # =========================
 # 🚀 ROTA (SE FOR HOJE)
 # =========================
