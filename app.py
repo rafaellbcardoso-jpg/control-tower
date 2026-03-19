@@ -1,5 +1,6 @@
 import streamlit as st
 st.set_page_config(layout="wide")
+
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import BallTree
@@ -7,6 +8,13 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from io import BytesIO
 
+# =========================
+# 🧠 NOW GLOBAL (PADRÃO)
+# =========================
+from datetime import datetime
+
+agora = datetime.now()
+hoje = agora.date()
 BUCKET_NAME = "control-tower-dados"
 
 credentials = service_account.Credentials.from_service_account_info(
