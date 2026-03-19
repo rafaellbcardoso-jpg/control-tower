@@ -495,7 +495,7 @@ df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 # =========================
 # 📊 TABELA
 # =========================
-st.title("🚛 Base Omni - Última Posição por Placa")
+st.title("🚛 Omnilink")
 
 st.dataframe(df_filtrado, use_container_width=True)
 
