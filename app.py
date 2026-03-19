@@ -269,7 +269,7 @@ for _, row in df.iterrows():
 
     datas.append(data)
 
-df["Ultima Data PV"] = datas
+df["Programação"] = datas
 
 
 # =========================
@@ -323,13 +323,10 @@ df["Motorista"] = motoristas
 # =========================
 df = df[[
     "Placa",
-    "Tipo",
     "Posição",
-    "Qtd PV",
-    "Qtd PV Data",
     "Localização Atual",
-    "Motorista",
-    "Ultima Data PV"
+    "Programação",
+    "Motorista"
 ]]
 # =========================
 # 🎛️ FILTRO
