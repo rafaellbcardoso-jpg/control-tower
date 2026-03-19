@@ -129,7 +129,9 @@ df = df.merge(
     df_validos[["Placa", "Localização Atual"]],
     on="Placa",
     how="left"
-)# =========================
+)
+
+# =========================
 # 🔽 BASE PV (BUCKET)
 # =========================
 blobs_pv = list(bucket.list_blobs(prefix="robo/"))
@@ -145,67 +147,53 @@ for blob in blobs_pv:
 if dfs_pv:
     df_pv = pd.concat(dfs_pv, ignore_index=True)
 
-# =========================
-# 🔧 NORMALIZAR PV
-# =========================
-df_pv["Placas_str"] = df_pv["Placas"].astype(str)
-
-df_pv["Placas_clean"] = (
-    df_pv["Placas_str"]
-    .str.replace("-", "")
-    .str.replace("/", "")
-    .str.replace(" ", "")
-)
-
-# =========================
-# 🔧 NORMALIZAR OMNI
-# =========================
-df["Placa_clean"] = df["Placa"].astype(str).str.replace(r"\W", "", regex=True)
-
-# =========================
-# 🔥 MATCH POR CONTÉM
-# =========================
-resultados = []
-
-for _, row in df.iterrows():
-    placa = row["Placa_clean"]
-
-    match = df_pv[df_pv["Placas_clean"].str.contains(placa, na=False)]
-
-    if not match.empty:
-        data = match["Data"].max()
-    else:
-        data = None
-
-    resultados.append(data)
-
-df["Última PV"] = pd.to_datetime(resultados).dt.strftime("%d/%m/%Y %H:%M:%S")
     # =========================
-    # 🔗 MERGE
+    # 🔧 NORMALIZAR PV
     # =========================
-    df = df.merge(
-        df_pv[["Placas", "Data_PV"]],
-        left_on="Placa_clean",
-        right_on="Placas",
-        how="left"
+    df_pv["Placas_str"] = df_pv["Placas"].astype(str)
+
+    df_pv["Placas_clean"] = (
+        df_pv["Placas_str"]
+        .str.replace("-", "")
+        .str.replace("/", "")
+        .str.replace(" ", "")
     )
 
     # =========================
-    # 🇧🇷 FORMATAR DATA FINAL
+    # 🔧 NORMALIZAR OMNI
     # =========================
-    df["Última PV"] = df["Data_PV"].dt.strftime("%d/%m/%Y %H:%M:%S")
+    df["Placa_clean"] = df["Placa"].astype(str).str.replace(r"\W", "", regex=True)
+
+    # =========================
+    # 🔧 DATA PV
+    # =========================
+    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+
+    # =========================
+    # 🔥 MATCH POR CONTÉM
+    # =========================
+    resultados = []
+
+    for _, row in df.iterrows():
+        placa = row["Placa_clean"]
+
+        match = df_pv[df_pv["Placas_clean"].str.contains(placa, na=False)]
+
+        if not match.empty:
+            data = match["Data"].max()
+        else:
+            data = None
+
+        resultados.append(data)
+
+    df["Última PV"] = pd.to_datetime(resultados).dt.strftime("%d/%m/%Y %H:%M:%S")
 
     # limpeza
-    df.drop(columns=["Placa_clean", "Placas", "Data_PV"], inplace=True)
+    df.drop(columns=["Placa_clean"], inplace=True)
 
-# garante coluna mesmo se não houver PV
+# garante coluna se não houver PV
 if "Última PV" not in df.columns:
     df["Última PV"] = None
-# =========================
-# 🇧🇷 FORMATAÇÃO DATA
-# =========================
-df["Posição"] = df["Posição"].dt.strftime("%d/%m/%Y %H:%M:%S")
-
 # =========================
 # 🔽 COLUNAS
 # =========================
