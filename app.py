@@ -187,6 +187,21 @@ if not df_pv.empty:
         .str.replace(r"[^A-Z0-9]", "", regex=True)
     )
 
+    placas_teste_clean = (
+        placas_teste
+        .astype(str)
+        .str.upper()
+        .str.replace(r"[^A-Z0-9]", "", regex=True)
+    )
+
+    df_debug = df_pv[
+        df_pv["Placas_clean"].isin(placas_teste_clean)
+    ].copy()
+
+    st.dataframe(df_debug, use_container_width=True)
+else:
+    st.write("Base PV vazia")
+    
 # =========================
 # 🔧 NORMALIZAR OMNI
 # =========================
