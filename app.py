@@ -504,7 +504,7 @@ df["Motorista"] = motoristas
 # 🧠 DISPONIBILIDADE MOTORISTAS (BASE NOVA)
 # =========================
 
-df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
+df_pv["DT_Destino"] = pd.to_datetime(df_pv["DT_Destino"], errors="coerce", dayfirst=True)
 
 motoristas_lista = df_moto["Motoristas"].dropna().unique()
 
@@ -515,26 +515,61 @@ for motorista in motoristas_lista:
     df_match = df_pv[df_pv["Motoristas"] == motorista]
 
     if not df_match.empty:
-        ultima_data = df_match["Data"].max()
-        horas = (agora - ultima_data).total_seconds() / 3600 if pd.notnull(ultima_data) else None
+
+        # pega última linha pela data
+        linha = df_match.sort_values("DT_Destino", ascending=False).iloc[0]
+
+        data_destino = linha.get("DT_Destino", None)
+        eta2_str = linha.get("ETA_2", None)
+
+        if pd.notnull(data_destino) and pd.notnull(eta2_str):
+
+            try:
+                # monta data + hora final
+                hora = datetime.strptime(eta2_str, "%H:%M")
+
+                fim_viagem = hora.replace(
+                    year=data_destino.year,
+                    month=data_destino.month,
+                    day=data_destino.day
+                )
+
+                horas = (agora - fim_viagem).total_seconds() / 3600
+
+            except:
+                horas = None
+        else:
+            horas = None
     else:
         horas = None
 
-    # 🔥 BUSCA STATUS NA BASE_MOTO
-    status = df_moto.loc[
+    # 🔥 STATUS BASE MOTO
+    status_base = df_moto.loc[
         df_moto["Motoristas"] == motorista, "Status Motorista"
     ]
-    status = status.iloc[0] if not status.empty else None
+    status_base = status_base.iloc[0] if not status_base.empty else None
+
+    # 🔥 CLASSIFICAÇÃO
+    if horas is None:
+        status_final = None
+
+    elif horas < 0:
+        status_final = "🟡 Disponível em breve"
+
+    elif horas <= 12:
+        status_final = "🔴 Em descanso"
+
+    else:
+        status_final = "🟢 Disponível"
 
     registros.append({
         "Motoristas": motorista,
         "Horas sem viagem": horas,
-        "Status": status  # 👈 NOVO CAMPO
+        "Status": status_base,
+        "Disponibilidade": status_final
     })
 
 df_disp = pd.DataFrame(registros)
-
-df_disp = df_disp[df_disp["Horas sem viagem"] > 12]
 
 df_disp["Horas sem viagem"] = df_disp["Horas sem viagem"].round(1)
 
