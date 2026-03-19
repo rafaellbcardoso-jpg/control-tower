@@ -206,9 +206,24 @@ for _, row in df.iterrows():
         data = df_match["Data"].max() if not df_match.empty else None
 
 # 👇 formata para DD/MM/AAAA
-data = data.strftime("%d/%m/%Y") if pd.notna(data) else None
+datas = []
 
-datas.append(data)
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
+        
+        data = df_match["Data"].max() if not df_match.empty else None
+    else:
+        data = None
+
+    # 👇 AQUI DENTRO DO LOOP
+    data = data.strftime("%d/%m/%Y") if pd.notna(data) else None
+
+    datas.append(data)
 
 df["Ultima Data PV"] = datas
 # =========================
