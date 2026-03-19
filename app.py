@@ -325,6 +325,66 @@ for _, row in df.iterrows():
 
 df["Rota"] = rotas
 # =========================
+# 🧠 ANDAMENTO (ETA)
+# =========================
+
+andamentos = []
+
+for _, row in df.iterrows():
+
+    if row["Programação"] == "Hoje":
+
+        placa = row["Placa_clean"]
+
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
+
+        if not df_match.empty:
+
+            linha = df_match.sort_values("Data", ascending=False).iloc[0]
+
+            eta_str = linha.get("ETA", None)
+
+            if pd.notnull(eta_str) and eta_str != "":
+
+                try:
+                    # transforma ETA (HH:MM) em datetime hoje
+                    eta = datetime.strptime(eta_str, "%H:%M")
+                    eta = eta.replace(
+                        year=agora.year,
+                        month=agora.month,
+                        day=agora.day
+                    )
+
+                    diferenca = eta - agora
+
+                    if agora > eta:
+                        andamento = "Em andamento"
+
+                    else:
+                        horas = diferenca.total_seconds() / 3600
+
+                        if horas > 4:
+                            andamento = f"🟢 {eta_str}"
+                        else:
+                            andamento = f"🔴 {eta_str}"
+
+                except:
+                    andamento = None
+            else:
+                andamento = None
+
+        else:
+            andamento = None
+
+    else:
+        andamento = None
+
+    andamentos.append(andamento)
+
+df["Andamento"] = andamentos
+# =========================
 # 🔥 CONTAGEM PV COM DATA
 # =========================
 qtd_datas = []
