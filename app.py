@@ -47,95 +47,6 @@ if dfs_moto:
     df_moto = pd.concat(dfs_moto, ignore_index=True)
 
 # =========================
-# 📊 DASHBOARD FROTA HOJE
-# =========================
-
-st.subheader("📊 Status da Frota (Hoje)")
-
-import plotly.express as px
-
-# 🔹 FILTRA FROTA QUE POSICIONOU HOJE
-df_frota_hoje = df[
-    (df["Tipo"] == "Frota") &
-    (df["Posição"].dt.date == hoje)
-].copy()
-
-# 🔹 MONTA FINALIZAÇÃO (DT_Destino + ETA_2)
-df_pv["DT_Destino"] = pd.to_datetime(df_pv["DT_Destino"], errors="coerce", dayfirst=True)
-
-finalizacoes = []
-
-for _, row in df_frota_hoje.iterrows():
-    placa = row["Placa_clean"]
-
-    df_match = df_pv[
-        df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
-    ]
-
-    if not df_match.empty:
-        linha = df_match.sort_values("DT_Destino", ascending=False).iloc[0]
-
-        data_destino = linha.get("DT_Destino", None)
-        eta2 = linha.get("ETA_2", None)
-
-        if pd.notnull(data_destino) and pd.notnull(eta2):
-            try:
-                hora = datetime.strptime(eta2, "%H:%M")
-                final = hora.replace(
-                    year=data_destino.year,
-                    month=data_destino.month,
-                    day=data_destino.day
-                )
-            except:
-                final = None
-        else:
-            final = None
-    else:
-        final = None
-
-    finalizacoes.append(final)
-
-df_frota_hoje["Finalizacao"] = finalizacoes
-
-# 🔹 CLASSIFICAÇÃO
-status = []
-
-for _, row in df_frota_hoje.iterrows():
-
-    final = row["Finalizacao"]
-
-    if pd.isna(final):
-        status.append("🔴 Não utilizado")
-
-    elif final.date() == hoje:
-        if final > agora:
-            status.append("🟡 Em operação")
-        else:
-            status.append("🟢 Usado hoje")
-
-    elif final < datetime.combine(hoje, datetime.min.time()):
-        status.append("🔴 Não utilizado")
-
-    else:
-        status.append("🔴 Não utilizado")
-
-df_frota_hoje["Status"] = status
-
-# 🔹 CONTAGEM
-resumo = df_frota_hoje["Status"].value_counts().reset_index()
-resumo.columns = ["Status", "Qtd"]
-
-# 🔹 GRÁFICO
-fig = px.pie(
-    resumo,
-    names="Status",
-    values="Qtd",
-    hole=0.5
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-# =========================
 # 🔽 BASE OMNILINK
 # =========================
 blobs = list(bucket.list_blobs(prefix="omnilink/"))
@@ -678,6 +589,97 @@ df = df[[
     "Andamento",
     "Motorista"
 ]]
+
+# =========================
+# 📊 DASHBOARD FROTA HOJE
+# =========================
+
+st.subheader("📊 Status da Frota (Hoje)")
+
+import plotly.express as px
+
+# 🔹 FILTRA FROTA QUE POSICIONOU HOJE
+df_frota_hoje = df[
+    (df["Tipo"] == "Frota") &
+    (df["Posição"].dt.date == hoje)
+].copy()
+
+# 🔹 MONTA FINALIZAÇÃO (DT_Destino + ETA_2)
+df_pv["DT_Destino"] = pd.to_datetime(df_pv["DT_Destino"], errors="coerce", dayfirst=True)
+
+finalizacoes = []
+
+for _, row in df_frota_hoje.iterrows():
+    placa = row["Placa_clean"]
+
+    df_match = df_pv[
+        df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+    ]
+
+    if not df_match.empty:
+        linha = df_match.sort_values("DT_Destino", ascending=False).iloc[0]
+
+        data_destino = linha.get("DT_Destino", None)
+        eta2 = linha.get("ETA_2", None)
+
+        if pd.notnull(data_destino) and pd.notnull(eta2):
+            try:
+                hora = datetime.strptime(eta2, "%H:%M")
+                final = hora.replace(
+                    year=data_destino.year,
+                    month=data_destino.month,
+                    day=data_destino.day
+                )
+            except:
+                final = None
+        else:
+            final = None
+    else:
+        final = None
+
+    finalizacoes.append(final)
+
+df_frota_hoje["Finalizacao"] = finalizacoes
+
+# 🔹 CLASSIFICAÇÃO
+status = []
+
+for _, row in df_frota_hoje.iterrows():
+
+    final = row["Finalizacao"]
+
+    if pd.isna(final):
+        status.append("🔴 Não utilizado")
+
+    elif final.date() == hoje:
+        if final > agora:
+            status.append("🟡 Em operação")
+        else:
+            status.append("🟢 Usado hoje")
+
+    elif final < datetime.combine(hoje, datetime.min.time()):
+        status.append("🔴 Não utilizado")
+
+    else:
+        status.append("🔴 Não utilizado")
+
+df_frota_hoje["Status"] = status
+
+# 🔹 CONTAGEM
+resumo = df_frota_hoje["Status"].value_counts().reset_index()
+resumo.columns = ["Status", "Qtd"]
+
+# 🔹 GRÁFICO
+fig = px.pie(
+    resumo,
+    names="Status",
+    values="Qtd",
+    hole=0.5
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+
 
 # =========================
 # 📊 OMNILINK
