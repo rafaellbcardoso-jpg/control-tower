@@ -306,14 +306,7 @@ for _, row in df.iterrows():
 
         if not df_match.empty:
 
-            # pega a última data
-            df_match = df_match.copy()
-            df_match["Data"] = pd.to_datetime(df_match["Data"], errors="coerce")
-
-            ultima_data = df_match["Data"].dropna().max()
-
-            # filtra a linha da última data
-            linha = df_match[df_match["Data"] == ultima_data].iloc[0]
+            linha = df_match.sort_values("Data", ascending=False).iloc[0]
 
             operacao = linha.get("Operação", None)
 
