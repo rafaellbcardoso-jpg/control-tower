@@ -697,6 +697,30 @@ resumo.columns = ["Status", "Quantidade"]
 st.dataframe(resumo, use_container_width=True)
 
 # =========================
+# DEBUG PV (TEMPORÁRIO)
+# =========================
+st.write("DEBUG PV")
+
+try:
+    placas_teste = df["Placa"].head(5)
+
+    placas_teste_clean = (
+        placas_teste
+        .astype(str)
+        .str.upper()
+        .str.replace(r"[^A-Z0-9]", "", regex=True)
+    )
+
+    df_debug = df_pv[
+        df_pv["Placas_clean"].isin(placas_teste_clean)
+    ].copy()
+
+    st.write(df_debug.head())
+
+except Exception as e:
+    st.write("Erro debug:", e)
+
+# =========================
 # 📊 OMNILINK
 # =========================
 st.title("🚛 Omnilink")
