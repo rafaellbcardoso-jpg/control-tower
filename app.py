@@ -130,7 +130,54 @@ df = df.merge(
     on="Placa",
     how="left"
 )
+# =========================
+# 🔽 BASE PV (BUCKET)
+# =========================
+blobs_pv = list(bucket.list_blobs(prefix="robo/"))
 
+dfs_pv = []
+
+for blob in blobs_pv:
+    if blob.name.endswith(".csv"):
+        content = blob.download_as_bytes()
+        df_temp = pd.read_csv(BytesIO(content))
+        dfs_pv.append(df_temp)
+
+if dfs_pv:
+    df_pv = pd.concat(dfs_pv, ignore_index=True)
+
+    # 🔧 NORMALIZAR PLACAS
+    df_pv["Placas"] = df_pv["Placas"].astype(str)
+    df_pv["Placas"] = df_pv["Placas"].str.replace("//", ",")
+    df_pv["Placas"] = df_pv["Placas"].str.replace("-", "")
+    df_pv["Placas"] = df_pv["Placas"].str.split(",")
+
+    df_pv = df_pv.explode("Placas")
+    df_pv["Placas"] = df_pv["Placas"].str.strip()
+    df_pv["Placas"] = df_pv["Placas"].str.replace(r"\D", "", regex=True)
+
+    # 🔧 DATA PV
+    df_pv["Data_PV"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+
+    # 🔥 ÚLTIMA DATA POR PLACA
+    df_pv = df_pv.sort_values(by="Data_PV", ascending=False)
+    df_pv = df_pv.drop_duplicates(subset="Placas", keep="first")
+
+    # 🔗 NORMALIZAR PLACA OMNI
+    df["Placa_clean"] = df["Placa"].astype(str).str.replace(r"\D", "", regex=True)
+
+    # 🔗 MERGE PV
+    df = df.merge(
+        df_pv[["Placas", "Data_PV"]],
+        left_on="Placa_clean",
+        right_on="Placas",
+        how="left"
+    )
+
+    # 🇧🇷 FORMATAR DATA PV
+    df["Última PV"] = df["Data_PV"].dt.strftime("%d/%m/%Y %H:%M:%S")
+
+    df.drop(columns=["Placa_clean", "Placas", "Data_PV"], inplace=True)
 # =========================
 # 🇧🇷 FORMATAÇÃO DATA
 # =========================
