@@ -191,7 +191,7 @@ df["Qtd PV"] = contagens
 # 🔥 ÚLTIMA DATA PV
 # =========================
 if not df_pv.empty:
-    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
 
 datas = []
 
@@ -204,13 +204,16 @@ for _, row in df.iterrows():
         ]
         
         data = df_match["Data"].max() if not df_match.empty else None
+
+        # 👇 formata para DD/MM/AAAA
+        if pd.notna(data):
+            data = data.strftime("%d/%m/%Y")
     else:
         data = None
 
     datas.append(data)
 
 df["Ultima Data PV"] = datas
-
 # =========================
 # 🔥 CONTAGEM DE MATCH
 # =========================
