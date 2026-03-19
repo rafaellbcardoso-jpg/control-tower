@@ -483,32 +483,42 @@ for _, row in df.iterrows():
 df["Motorista"] = motoristas
 
 # =========================
-# 🧠 DISPONIBILIDADE MOTORISTAS
+# 🧠 DISPONIBILIDADE MOTORISTAS (BASE NOVA)
 # =========================
 
-# 🔹 garante datetime
-df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
+# 🔹 garante datetime na robo
+df_pv["DATA"] = pd.to_datetime(df_pv["DATA"], errors="coerce", dayfirst=True)
 
-# 🔹 última viagem por motorista
-df_disp = (
-    df_pv.sort_values("Data", ascending=False)
-    .drop_duplicates(subset="Motoristas", keep="first")
-)
+# 🔹 lista única de motoristas da base nova
+motoristas_lista = df_moto["Motoristas"].dropna().unique()
 
-# 🔹 calcula horas sem viagem
-df_disp["Horas sem viagem"] = (
-    (agora - df_disp["Data"]).dt.total_seconds() / 3600
-)
+registros = []
 
-# 🔹 filtra disponíveis (>12h)
+for motorista in motoristas_lista:
+
+    df_match = df_pv[df_pv["Motoristas"] == motorista]
+
+    if not df_match.empty:
+        ultima_data = df_match["DATA"].max()
+        horas = (agora - ultima_data).total_seconds() / 3600 if pd.notnull(ultima_data) else None
+    else:
+        horas = None
+
+    registros.append({
+        "Motorista": motorista,
+        "Horas sem viagem": horas
+    })
+
+df_disp = pd.DataFrame(registros)
+
+# 🔹 filtra > 12h
 df_disp = df_disp[df_disp["Horas sem viagem"] > 12]
 
 # 🔹 arredonda
 df_disp["Horas sem viagem"] = df_disp["Horas sem viagem"].round(1)
 
-# 🔹 ordena (quem está mais tempo parado primeiro)
+# 🔹 ordena
 df_disp = df_disp.sort_values("Horas sem viagem", ascending=False)
-
 # =========================
 # 🔽 COLUNAS
 # =========================
