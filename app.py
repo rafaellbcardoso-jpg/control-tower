@@ -522,7 +522,7 @@ for motorista in motoristas_lista:
 
     # 🔥 BUSCA STATUS NA BASE_MOTO
     status = df_moto.loc[
-        df_moto["Motoristas"] == motorista, "Status"
+        df_moto["Motoristas"] == motorista, "Status Motorista"
     ]
     status = status.iloc[0] if not status.empty else None
 
