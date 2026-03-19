@@ -497,8 +497,6 @@ df_filtrado = df[df["Tipo"].isin(tipo_selecionado)]
 st.dataframe(df_filtrado, use_container_width=True)
 st.title("🚛 Base Omni - Última Posição por Placa")
 
-st.dataframe(df_filtrado)
-
 # =========================
 # 🗺️ MAPA
 # =========================
