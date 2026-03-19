@@ -205,13 +205,10 @@ for _, row in df.iterrows():
         
         data = df_match["Data"].max() if not df_match.empty else None
 
-        # 👇 formata para DD/MM/AAAA
-        if pd.notna(data):
-            data = data.strftime("%d/%m/%Y")
-    else:
-        data = None
+# 👇 formata para DD/MM/AAAA
+data = data.strftime("%d/%m/%Y") if pd.notna(data) else None
 
-    datas.append(data)
+datas.append(data)
 
 df["Ultima Data PV"] = datas
 # =========================
