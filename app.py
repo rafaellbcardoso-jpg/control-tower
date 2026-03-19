@@ -39,21 +39,12 @@ if not dfs:
 
 df = pd.concat(dfs, ignore_index=True)
 
-# =========================
-# 🧠 POSIÇÃO
-# =========================
+# ========================= 
+# 🧠 POSIÇÃO 
+# ========================= 
 df["Posição"] = pd.to_datetime(
     df["Data de comunicação"].astype(str).str[4:24],
-    errors="coerce"
-)
-
-from datetime import datetime
-hoje = datetime.now().date()
-
-df["Posição"] = df["Posição"].apply(
-    lambda x: x.strftime("%H:%M:%S") if pd.notnull(x) and x.date() == hoje 
-    else (x.strftime("%Y-%m-%d %H:%M:%S") if pd.notnull(x) else None)
-)
+    errors="coerce" )
 
 # =========================
 # 🧠 TIPO
