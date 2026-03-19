@@ -190,6 +190,7 @@ df = df[[
     "Placa",
     "Tipo",
     "Posição",
+    "Última PV",
     "Localização Atual"
 ]]
 
