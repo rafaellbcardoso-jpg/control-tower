@@ -626,7 +626,7 @@ for _, row in df_frota_hoje.iterrows():
 
         if pd.notnull(data_destino) and pd.notnull(eta2):
             try:
-                hora = datetime.strptime(eta2, "%H:%M")
+                hora = pd.to_datetime(eta2).to_pydatetime()
                 final = hora.replace(
                     year=data_destino.year,
                     month=data_destino.month,
