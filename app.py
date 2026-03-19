@@ -213,6 +213,48 @@ for _, row in df.iterrows():
 df["Ultima Data PV"] = datas
 
 # =========================
+# 🔥 CONTAGEM DE MATCH
+# =========================
+contagens = []
+
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
+        qtd = df_pv["Placas_clean"].str.contains(placa, na=False).sum()
+    else:
+        qtd = 0
+
+    contagens.append(qtd)
+
+df["Qtd PV"] = contagens
+
+# =========================
+# 🔥 ÚLTIMA DATA PV
+# =========================
+if not df_pv.empty:
+    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+
+datas = []
+
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
+        df_match = df_pv[df_pv["Placas_clean"].str.contains(placa, na=False)]
+        
+        if not df_match.empty:
+            data = df_match["Data"].dropna().max()
+        else:
+            data = None
+    else:
+        data = None
+
+    datas.append(data)
+
+df["Ultima Data PV"] = datas
+
+# =========================
 # 🔥 CONTAGEM PV COM DATA
 # =========================
 if not df_pv.empty:
@@ -236,6 +278,7 @@ for _, row in df.iterrows():
     qtd_datas.append(qtd)
 
 df["Qtd PV Data"] = qtd_datas
+
 # =========================
 # 🔽 COLUNAS
 # =========================
@@ -246,7 +289,7 @@ df = df[[
     "Qtd PV",
     "Qtd PV Data",
     "Localização Atual",
-    "Última Data PV"
+    "Ultima Data PV"
 ]]
 
 # =========================
