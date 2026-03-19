@@ -139,9 +139,9 @@ blobs_pv = list(bucket.list_blobs(prefix="robo/"))
 dfs_pv = []
 
 for blob in blobs_pv:
-    if blob.name.endswith(".csv"):
+    if blob.name.endswith(".xlsx"):
         content = blob.download_as_bytes()
-        df_temp = pd.read_csv(BytesIO(content))
+        df_temp = pd.read_excel(BytesIO(content))
         dfs_pv.append(df_temp)
 
 # 🔒 garante que df_pv sempre existe
