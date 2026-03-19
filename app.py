@@ -145,41 +145,41 @@ for blob in blobs_pv:
 if dfs_pv:
     df_pv = pd.concat(dfs_pv, ignore_index=True)
 
-    # =========================
-    # 🔧 TRATAR PLACAS
-    # =========================
-    df_pv["Placas"] = df_pv["Placas"].astype(str)
+# =========================
+# 🔧 NORMALIZAR PV
+# =========================
+df_pv["Placas_str"] = df_pv["Placas"].astype(str)
 
-    # separa múltiplas placas
-    df_pv["Placas"] = df_pv["Placas"].str.replace("//", ",")
-    df_pv["Placas"] = df_pv["Placas"].str.split(",")
+df_pv["Placas_clean"] = (
+    df_pv["Placas_str"]
+    .str.replace("-", "")
+    .str.replace("/", "")
+    .str.replace(" ", "")
+)
 
-    df_pv = df_pv.explode("Placas")
+# =========================
+# 🔧 NORMALIZAR OMNI
+# =========================
+df["Placa_clean"] = df["Placa"].astype(str).str.replace(r"\W", "", regex=True)
 
-    # limpa caracteres
-    df_pv["Placas"] = df_pv["Placas"].str.replace("-", "")
-    df_pv["Placas"] = df_pv["Placas"].str.replace(r"\D", "", regex=True)
-    df_pv["Placas"] = df_pv["Placas"].str.strip()
+# =========================
+# 🔥 MATCH POR CONTÉM
+# =========================
+resultados = []
 
-    # remove vazios
-    df_pv = df_pv[df_pv["Placas"] != ""]
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
 
-    # =========================
-    # 🔧 DATA
-    # =========================
-    df_pv["Data_PV"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+    match = df_pv[df_pv["Placas_clean"].str.contains(placa, na=False)]
 
-    # =========================
-    # 🔥 ÚLTIMA DATA POR PLACA
-    # =========================
-    df_pv = df_pv.sort_values("Data_PV", ascending=False)
-    df_pv = df_pv.drop_duplicates("Placas")
+    if not match.empty:
+        data = match["Data"].max()
+    else:
+        data = None
 
-    # =========================
-    # 🔗 NORMALIZAR PLACA OMNI
-    # =========================
-    df["Placa_clean"] = df["Placa"].astype(str).str.replace(r"\D", "", regex=True)
+    resultados.append(data)
 
+df["Última PV"] = pd.to_datetime(resultados).dt.strftime("%d/%m/%Y %H:%M:%S")
     # =========================
     # 🔗 MERGE
     # =========================
