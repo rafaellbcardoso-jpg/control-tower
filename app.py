@@ -520,9 +520,16 @@ for motorista in motoristas_lista:
     else:
         horas = None
 
+    # 🔥 BUSCA STATUS NA BASE_MOTO
+    status = df_moto.loc[
+        df_moto["Motoristas"] == motorista, "Status"
+    ]
+    status = status.iloc[0] if not status.empty else None
+
     registros.append({
-        "Motoristas": motorista,  # 🔥 corrigido aqui
-        "Horas sem viagem": horas
+        "Motoristas": motorista,
+        "Horas sem viagem": horas,
+        "Status": status  # 👈 NOVO CAMPO
     })
 
 df_disp = pd.DataFrame(registros)
@@ -532,6 +539,7 @@ df_disp = df_disp[df_disp["Horas sem viagem"] > 12]
 df_disp["Horas sem viagem"] = df_disp["Horas sem viagem"].round(1)
 
 df_disp = df_disp.sort_values("Horas sem viagem", ascending=False)
+
 # =========================
 # 🔽 COLUNAS
 # =========================
