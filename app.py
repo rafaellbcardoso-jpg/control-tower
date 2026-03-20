@@ -738,9 +738,6 @@ df_frota = df_frota[[
 # =========================
 total = df_frota["PLACA"].nunique()
 
-st.subheader("🔢 Total")
-st.metric("Total de placas frota", total)
-
 # =========================
 # 🔢 TOTAL PROGRAMAÇÃO HOJE
 # =========================
@@ -751,12 +748,56 @@ df_total_prog = df[
 
 total_prog = df_total_prog["Placa"].nunique()
 
-st.subheader("🔢 Total Programação Hoje")
-st.metric("Frota programada hoje", total_prog)
+# =========================
+# 🔢 TOTAL ONTEM
+# =========================
+ontem = hoje - pd.Timedelta(days=1)
+
+df_ontem = df[
+    (df["Tipo"] == "Frota") &
+    (pd.to_datetime(df["Programação"], errors="coerce").dt.date == ontem)
+]
+
+total_ontem = df_ontem["Placa"].nunique()
+
+# =========================
+# 🔢 TOTAL -2 DIAS
+# =========================
+dois_dias = hoje - pd.Timedelta(days=2)
+
+df_2dias = df[
+    (df["Tipo"] == "Frota") &
+    (pd.to_datetime(df["Programação"], errors="coerce").dt.date == dois_dias)
+]
+
+total_2dias = df_2dias["Placa"].nunique()
+
+# =========================
+# 📊 CARDS
+# =========================
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.subheader("🔢 Total")
+    st.metric("Total de placas frota", total)
+
+with col2:
+    st.subheader("📅 Hoje")
+    st.metric("Programados hoje", total_prog)
+
+with col3:
+    st.subheader("📅 Ontem")
+    st.metric("Usados ontem", total_ontem)
+
+with col4:
+    st.subheader("📅 -2 dias")
+    st.metric("Usados -2 dias", total_2dias)
+
 
 # =========================
 # 📊 DONUT - PROGRAMAÇÃO HOJE (COM COR)
 # =========================
+
 import plotly.express as px
 
 nao_programados = total - total_prog
