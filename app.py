@@ -649,13 +649,13 @@ df_frota["Placa_clean"] = (
 # 🔗 MERGE COM OMNI (CRU)
 # =========================
 df_frota = df_frota.merge(
-    df[["Placa_clean", "Data do registro"]],
-    left_on=df_frota["PLACA"].astype(str).str.upper().str.replace(r"[^A-Z0-9]", "", regex=True),
+    df[["Placa_clean", "Data de comunicação"]],
+    left_on="Placa_clean",
     right_on="Placa_clean",
     how="left"
 )
 
-df_frota = df_frota[["PLACA", "Data do registro"]]
+df_frota = df_frota[["PLACA", "Data de comunicação"]]
 
 st.subheader("🚛 Placas Frota")
 
