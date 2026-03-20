@@ -592,36 +592,36 @@ df = df[[
 # =========================
 # 🎯 FILTROS
 # =========================
-st.sidebar.title("Filtros")
+#st.sidebar.title("Filtros")
 
 # 🔹 GARANTE COLUNAS
-if "Tipo" not in df.columns:
-    df["Tipo"] = None
+#if "Tipo" not in df.columns:
+#    df["Tipo"] = None
 
-if "Operação" not in df.columns:
-    df["Operação"] = None
+#if "Operação" not in df.columns:
+#    df["Operação"] = None
 
 # 🔹 FILTRO TIPO
-tipo_selecionado = st.sidebar.multiselect(
-    "Tipo",
-    options=df["Tipo"].dropna().unique(),
-    default=df["Tipo"].dropna().unique()
-)
+#tipo_selecionado = st.sidebar.multiselect(
+#    "Tipo",
+#    options=df["Tipo"].dropna().unique(),
+#    default=df["Tipo"].dropna().unique()
+#)
 
 # 🔹 FILTRO OPERAÇÃO
-operacao_selecionada = st.sidebar.multiselect(
-    "Operação",
-    options=df["Operação"].dropna().unique(),
-    default=df["Operação"].dropna().unique()
-)
+#operacao_selecionada = st.sidebar.multiselect(
+#    "Operação",
+##    options=df["Operação"].dropna().unique(),
+##    default=df["Operação"].dropna().unique()
+#)
 
 # =========================
 # 🔍 APLICAR FILTROS
 # =========================
-df_filtrado = df[
-    df["Tipo"].isin(tipo_selecionado) &
-    df["Operação"].isin(operacao_selecionada)
-]
+#df_filtrado = df[
+#    df["Tipo"].isin(tipo_selecionado) &
+#    df["Operação"].isin(operacao_selecionada)
+#]
 # =========================
 # 🚛 BASE FROTA (BUCKET)
 # =========================
