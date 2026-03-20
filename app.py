@@ -756,7 +756,7 @@ ontem = hoje - pd.Timedelta(days=1)
 df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
 
 # normaliza placas do robo
-df_pv["Placa_clean"] = (
+df_pv["Placa"] = (
     df_pv["Placas"]
     .astype(str)
     .str.upper()
@@ -770,10 +770,10 @@ df_ontem = df_pv[
 
 # mantém só placas da frota
 df_ontem = df_ontem[
-    df_ontem["Placa_clean"].isin(df_frota["Placa_clean"])
+    df_ontem["Placa"].isin(df_frota["Placa_clean"])
 ]
 
-total_ontem = df_ontem["Placa_clean"].nunique()
+total_ontem = df_ontem["Placa"].nunique()
 
 # =========================
 # 🔢 TOTAL -2 DIAS
