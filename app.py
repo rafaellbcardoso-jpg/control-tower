@@ -674,13 +674,45 @@ df_frota = df_frota.merge(
     how="left"
 )
 
+# =========================
+# 🔗 MERGE ROTA
+# =========================
+df_frota = df_frota.merge(
+    df[["Placa", "Rota"]],
+    left_on="PLACA",
+    right_on="Placa",
+    how="left"
+)
+
+# =========================
+# 🔗 MERGE ANDAMENTO
+# =========================
+df_frota = df_frota.merge(
+    df[["Placa", "Andamento"]],
+    left_on="PLACA",
+    right_on="Placa",
+    how="left"
+)
+
+# =========================
+# 🔗 MERGE MOTORISTA
+# =========================
+df_frota = df_frota.merge(
+    df[["Placa", "Motorista"]],
+    left_on="PLACA",
+    right_on="Placa",
+    how="left"
+)
 df_frota = df_frota.drop(columns=["Placa_x", "Placa_y"], errors="ignore")
 
 df_frota = df_frota[[
     "PLACA", 
     "Posição",
     "Operação",
-    "Programação"
+    "Programação",
+    "Rota",
+    "Andamento",
+    "Motorista"
 ]]
 
 st.subheader("🚛 Placas Frota")
