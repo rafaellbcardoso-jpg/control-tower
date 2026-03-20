@@ -634,11 +634,12 @@ df_frota = pd.read_excel(BytesIO(conteudo_frota))
 df_frota = df_frota[["PLACA"]]
 
 # =========================
-# 🔗 MERGE COM OMNI (DATA DO REGISTRO)
+# 🔗 MERGE COM OMNI (CRU)
 # =========================
 df_frota = df_frota.merge(
     df[["Placa_clean", "Data do registro"]],
-    on="Placa_clean",
+    left_on=df_frota["PLACA"].astype(str).str.upper().str.replace(r"[^A-Z0-9]", "", regex=True),
+    right_on="Placa_clean",
     how="left"
 )
 
