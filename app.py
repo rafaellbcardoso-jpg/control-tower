@@ -755,25 +755,24 @@ ontem = hoje - pd.Timedelta(days=1)
 
 df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
 
-# normaliza placas do robo
-df_pv["PLACA"] = (
-    df_pv["Placas"]
-    .astype(str)
-    .str.upper()
-    .str.replace("-", "", regex=False)
-)
-
-# filtra ontem
+# usa a mesma lógica do sistema (NÃO muda estrutura)
 df_ontem = df_pv[
     df_pv["Data"].dt.date == ontem
 ]
 
-# mantém só placas da frota
-df_ontem = df_ontem[
-    df_ontem["Placa"].isin(df_frota["Placa_clean"])
-]
+placas_frota = set(df_frota["Placa_clean"])
 
-total_ontem = df_ontem["Placa"].nunique()
+# match usando contains (igual seu motor principal)
+placas_ontem = set()
+
+for _, row in df_ontem.iterrows():
+    texto = str(row["Placas"]).upper().replace("-", "")
+    
+    for placa in placas_frota:
+        if placa in texto:
+            placas_ontem.add(placa)
+
+total_ontem = len(placas_ontem)
 
 # =========================
 # 🔢 TOTAL -2 DIAS
@@ -790,25 +789,82 @@ total_2dias = df_2dias["Placa"].nunique()
 # =========================
 # 📊 CARDS
 # =========================
+#col1, col2, col3, col4 = st.columns(4)
+
+#with col1:
+    #st.subheader("🔢 Total")
+    #st.metric("Total de placas frota", total)
+
+#with col2:
+    #st.subheader("📅 Hoje")
+    #st.metric("Programados hoje", total_prog)
+
+#with col3:
+    #st.subheader("📅 Ontem")
+    #st.metric("Usados ontem", total_ontem)
+
+#with col4:
+    #st.subheader("📅 -2 dias")
+    #st.metric("Usados -2 dias", total_2dias)
+
+st.markdown("""
+<style>
+.card {
+    padding: 18px;
+    border-radius: 16px;
+    color: white;
+    font-family: Arial;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.3);
+}
+
+.total { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 4px solid #3b82f6;}
+.hoje { background: linear-gradient(135deg, #022c22, #064e3b); border-bottom: 4px solid #10b981;}
+.ontem { background: linear-gradient(135deg, #3f2d00, #78350f); border-bottom: 4px solid #f59e0b;}
+.dois { background: linear-gradient(135deg, #3b0a1a, #7f1d1d); border-bottom: 4px solid #f43f5e;}
+
+.titulo { font-size: 14px; opacity: 0.8; }
+.valor { font-size: 42px; font-weight: bold; }
+.sub { font-size: 13px; opacity: 0.7; }
+</style>
+""", unsafe_allow_html=True)
+
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.subheader("🔢 Total")
-    st.metric("Total de placas frota", total)
+    st.markdown(f"""
+    <div class="card total">
+        <div class="titulo">🔢 Total</div>
+        <div class="valor">{total}</div>
+        <div class="sub">Total de placas frota</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col2:
-    st.subheader("📅 Hoje")
-    st.metric("Programados hoje", total_prog)
+    st.markdown(f"""
+    <div class="card hoje">
+        <div class="titulo">📅 Hoje</div>
+        <div class="valor">{total_prog}</div>
+        <div class="sub">Programados hoje</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col3:
-    st.subheader("📅 Ontem")
-    st.metric("Usados ontem", total_ontem)
+    st.markdown(f"""
+    <div class="card ontem">
+        <div class="titulo">📅 Ontem</div>
+        <div class="valor">{total_ontem}</div>
+        <div class="sub">Usados ontem</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col4:
-    st.subheader("📅 -2 dias")
-    st.metric("Usados -2 dias", total_2dias)
-
-
+    st.markdown(f"""
+    <div class="card dois">
+        <div class="titulo">📅 -2 dias</div>
+        <div class="valor">{total_2dias}</div>
+        <div class="sub">Usados -2 dias</div>
+    </div>
+    """, unsafe_allow_html=True)
 # =========================
 # 📊 DONUT - PROGRAMAÇÃO HOJE (COM COR)
 # =========================
