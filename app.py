@@ -302,10 +302,11 @@ from datetime import datetime
 hoje = datetime.now().date()
 
 df["Programação"] = df["Programação"].apply(
-    lambda x: "Hoje" if pd.notnull(x) and pd.to_datetime(x, errors="coerce").date() == hoje else (
+    lambda x: "Hoje" if pd.notnull(x) and pd.to_datetime(x, errors="coerce").normalize() == pd.to_datetime(hoje) else (
         x.strftime("%Y-%m-%d") if pd.notnull(x) else None
     )
 )
+
 # =========================
 # 🧠 OPERAÇÃO (ÚLTIMA)
 # =========================
