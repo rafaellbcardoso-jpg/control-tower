@@ -29,24 +29,6 @@ client = storage.Client(
 bucket = client.bucket(BUCKET_NAME)
 
 # =========================
-# 🔽 BASE MOTORISTAS (BUCKET)
-# =========================
-blobs_moto = list(bucket.list_blobs(prefix="motoristas/"))
-
-dfs_moto = []
-
-for blob in blobs_moto:
-    if blob.name.endswith(".xlsx"):
-        content = blob.download_as_bytes()
-        df_temp = pd.read_excel(BytesIO(content))
-        dfs_moto.append(df_temp)
-
-df_moto = pd.DataFrame()
-
-if dfs_moto:
-    df_moto = pd.concat(dfs_moto, ignore_index=True)
-
-# =========================
 # 🔽 BASE OMNILINK
 # =========================
 blobs = list(bucket.list_blobs(prefix="omnilink/"))
@@ -198,51 +180,112 @@ df["Placa_clean"] = (
 )
 
 # =========================
-# 🧠 PROGRAMAÇÃO (CRUA)
+# 🔥 CONTAGEM DE MATCH
 # =========================
-
-programacoes = []
+contagens = []
 
 for _, row in df.iterrows():
-
     placa = row["Placa_clean"]
 
     if not df_pv.empty:
+        qtd = df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True).sum()
+    else:
+        qtd = 0
 
+    contagens.append(qtd)
+
+df["Qtd PV"] = contagens
+# =========================
+# 🔥 ÚLTIMA DATA PV
+# =========================
+if not df_pv.empty:
+    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
+
+datas = []
+
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
         df_match = df_pv[
             df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
         ]
+        
+        data = df_match["Data"].max() if not df_match.empty else None
 
-        if not df_match.empty:
+# 👇 formata para DD/MM/AAAA
+datas = []
 
-            linha = df_match.assign(
-                Data_tmp=pd.to_datetime(df_match["Data"], errors="coerce")
-            ).sort_values("Data_tmp", ascending=False).iloc[0]
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
 
-            programacao = linha.get("Data", None)
-
-        else:
-            programacao = None
-
+    if not df_pv.empty:
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
+        
+        data = df_match["Data"].max() if not df_match.empty else None
     else:
-        programacao = None
+        data = None
 
-    programacoes.append(programacao)
+    # 👇 AQUI DENTRO DO LOOP
+    data = data.strftime("%d/%m/%Y") if pd.notna(data) else None
 
-df["Programação"] = programacoes
+    datas.append(data)
+
+df["Ultima Data PV"] = datas
+# =========================
+# 🔥 CONTAGEM DE MATCH
+# =========================
+contagens = []
+
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
+        qtd = df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True).sum()
+    else:
+        qtd = 0
+
+    contagens.append(qtd)
+
+df["Qtd PV"] = contagens
 
 
 # =========================
-# 🎯 FORMATAR PROGRAMAÇÃO
+# 🔥 ÚLTIMA DATA PV
 # =========================
+if not df_pv.empty:
+    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
+
+datas = []
+
+for _, row in df.iterrows():
+    placa = row["Placa_clean"]
+
+    if not df_pv.empty:
+        df_match = df_pv[
+            df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+        ]
+        
+        if not df_match.empty:
+            data = df_match["Data"].dropna().max()
+        else:
+            data = None
+    else:
+        data = None
+
+    datas.append(data)
+
+df["Programação"] = datas
 
 from datetime import datetime
 
 hoje = datetime.now().date()
 
 df["Programação"] = df["Programação"].apply(
-    lambda x: "Hoje" if pd.notnull(x) and pd.to_datetime(x, errors="coerce", dayfirst=True).date() == hoje else (
-        pd.to_datetime(x, errors="coerce", dayfirst=True).strftime("%d/%m/%Y") if pd.notnull(x) else None
+    lambda x: "Hoje" if pd.notnull(x) and x.date() == hoje else (
+        x.strftime("%Y-%m-%d") if pd.notnull(x) else None
     )
 )
 # =========================
@@ -288,7 +331,7 @@ rotas = []
 
 for _, row in df.iterrows():
 
-    if row["Programação"] == "Hoje" or row["Programação"] == str(hoje):
+    if row["Programação"] == "Hoje":
 
         placa = row["Placa_clean"]
 
@@ -325,7 +368,7 @@ andamentos = []
 
 for _, row in df.iterrows():
 
-    if row["Programação"] == "Hoje" or row["Programação"] == str(hoje):
+    if row["Programação"] == "Hoje":
 
         placa = row["Placa_clean"]
 
@@ -344,12 +387,14 @@ for _, row in df.iterrows():
             if pd.notnull(eta_str) and pd.notnull(eta2_str) and pd.notnull(data_destino):
 
                 try:
+                    # INÍCIO (ETA)
                     eta_inicio = datetime.strptime(eta_str, "%H:%M").replace(
                         year=agora.year,
                         month=agora.month,
                         day=agora.day
                     )
 
+                    # FIM (DT_Destino + ETA_2)
                     data_destino = pd.to_datetime(data_destino, errors="coerce")
 
                     eta_fim = datetime.strptime(eta2_str, "%H:%M")
@@ -359,6 +404,7 @@ for _, row in df.iterrows():
                         day=data_destino.day
                     )
 
+                    # 🔥 LÓGICA
                     if agora > eta_fim:
                         andamento = "Finalizado"
 
@@ -437,37 +483,37 @@ for _, row in df.iterrows():
 df["Motorista"] = motoristas
 
 # =========================
-# 🧠 DISPONIBILIDADE MOTORISTAS (BASE NOVA)
+# 🧠 DISPONIBILIDADE MOTORISTAS
 # =========================
 
-df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
+# 🔹 garante datetime
+df_pv["Data_Hora2"] = pd.to_datetime(df_pv["Data_Hora2"], errors="coerce")
 
-motoristas_lista = df_moto["Motoristas"].dropna().unique()
+# 🔹 filtra apenas Lemar
+df_lemar = df_pv[
+    df_pv["Tipo"].astype(str).str.upper().str.contains("LEMAR", na=False)
+]
 
-registros = []
+# 🔹 última viagem por motorista
+df_disp = (
+    df_lemar.sort_values("Data_Hora2", ascending=False)
+    .drop_duplicates(subset="Motoristas", keep="first")
+)
 
-for motorista in motoristas_lista:
+# 🔹 calcula horas sem viagem
+df_disp["Horas sem viagem"] = (
+    (agora - df_disp["Data_Hora2"]).dt.total_seconds() / 3600
+)
 
-    df_match = df_pv[df_pv["Motoristas"] == motorista]
-
-    if not df_match.empty:
-        ultima_data = df_match["Data"].max()
-        horas = (agora - ultima_data).total_seconds() / 3600 if pd.notnull(ultima_data) else None
-    else:
-        horas = None
-
-    registros.append({
-        "Motoristas": motorista,  # 🔥 corrigido aqui
-        "Horas sem viagem": horas
-    })
-
-df_disp = pd.DataFrame(registros)
-
+# 🔹 filtra disponíveis (>12h)
 df_disp = df_disp[df_disp["Horas sem viagem"] > 12]
 
+# 🔹 arredonda
 df_disp["Horas sem viagem"] = df_disp["Horas sem viagem"].round(1)
 
+# 🔹 ordena (quem está mais tempo parado primeiro)
 df_disp = df_disp.sort_values("Horas sem viagem", ascending=False)
+
 # =========================
 # 🔽 COLUNAS
 # =========================
