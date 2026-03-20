@@ -349,7 +349,7 @@ rotas = []
 
 for _, row in df.iterrows():
 
-    if row["Programação"] == "Hoje":
+        if row["Programação"] == "Hoje" or row["Programação"] == str(hoje):
 
         placa = row["Placa_clean"]
 
