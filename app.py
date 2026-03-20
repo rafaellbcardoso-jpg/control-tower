@@ -634,6 +634,18 @@ df_frota = pd.read_excel(BytesIO(conteudo_frota))
 df_frota = df_frota[["PLACA"]]
 
 # =========================
+# 🔗 NORMALIZAR PLACAS
+# =========================
+df_frota["Placa_clean"] = (
+    df_frota["PLACA"]
+    .astype(str)
+    .str.upper()
+    .str.replace(r"[^A-Z0-9]", "", regex=True)
+)
+
+# df já tem Placa_clean no seu código
+
+# =========================
 # 🔗 MERGE COM OMNI (CRU)
 # =========================
 df_frota = df_frota.merge(
