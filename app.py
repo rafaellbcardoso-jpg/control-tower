@@ -748,6 +748,12 @@ df_total_prog = df[
 
 total_prog = df_total_prog["Placa"].nunique()
 
+df_frota["Placa_clean"] = (
+    df_frota["PLACA"]
+    .astype(str)
+    .str.upper()
+    .str.replace(r"[^A-Z0-9]", "", regex=True)
+)
 # =========================
 # 🔢 TOTAL ONTEM (FROTA x ROBO)
 # =========================
