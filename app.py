@@ -198,42 +198,36 @@ df["Placa_clean"] = (
 )
 
 # =========================
-# 🔥 Programação
+# 🧠 PROGRAMAÇÃO (CRUA)
 # =========================
 
-if not df_pv.empty:
-    df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce")
-
-datas = []
+programacoes = []
 
 for _, row in df.iterrows():
+
     placa = row["Placa_clean"]
 
     if not df_pv.empty:
+
         df_match = df_pv[
             df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
         ]
-        
+
         if not df_match.empty:
-            data = df_match["Data"].dropna().max()
+
+            linha = df_match.sort_values("Data", ascending=False).iloc[0]
+
+            programacao = linha.get("Data", None)
+
         else:
-            data = None
+            programacao = None
+
     else:
-        data = None
+        programacao = None
 
-    datas.append(data)
+    programacoes.append(programacao)
 
-df["Programação"] = datas
-
-from datetime import datetime
-
-hoje = datetime.now().date()
-
-df["Programação"] = df["Programação"].apply(
-    lambda x: "Hoje" if pd.notnull(x) and x.date() == hoje else (
-        x.strftime("%Y-%m-%d") if pd.notnull(x) else None
-    )
-)
+df["Programação"] = programacoes
 # =========================
 # 🧠 OPERAÇÃO (ÚLTIMA)
 # =========================
