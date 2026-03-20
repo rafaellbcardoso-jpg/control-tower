@@ -749,16 +749,17 @@ df_total_prog = df[
 total_prog = df_total_prog["Placa"].nunique()
 
 # =========================
-# 🔢 TOTAL ONTEM
+# 🔢 TOTAL ONTEM (BASE ROBO)
 # =========================
 ontem = hoje - pd.Timedelta(days=1)
 
-df_ontem = df[
-    (df["Tipo"] == "Frota") &
-    (pd.to_datetime(df["Programação"], errors="coerce").dt.date == ontem)
+df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
+
+df_ontem = df_pv[
+    df_pv["Data"].dt.date == ontem
 ]
 
-total_ontem = df_ontem["Placa"].nunique()
+total_ontem = df_ontem["Placas"].nunique()
 
 # =========================
 # 🔢 TOTAL -2 DIAS
