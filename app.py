@@ -622,6 +622,20 @@ df_filtrado = df[
     df["Tipo"].isin(tipo_selecionado) &
     df["Operação"].isin(operacao_selecionada)
 ]
+
+# =========================
+# 🔢 TOTAL FROTA HOJE
+# =========================
+df_total = df[
+    (df["Tipo"] == "Frota") &
+    (df["Posição"].dt.date == hoje)
+]
+
+total = df_total["Placa"].nunique()
+
+st.subheader("🔢 Total")
+st.metric("Frota com posição hoje", total)
+
 # =========================
 # 📊 TABELA
 # =========================
