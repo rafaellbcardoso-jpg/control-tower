@@ -734,6 +734,27 @@ df_frota = df_frota[[
 ]]
 
 # =========================
+# 🔢 TOTAL FROTA (BASE FROTA)
+# =========================
+total = df_frota["PLACA"].nunique()
+
+st.subheader("🔢 Total")
+st.metric("Total de placas frota", total)
+
+# =========================
+# 🔢 TOTAL PROGRAMAÇÃO HOJE
+# =========================
+df_total_prog = df[
+    (df["Tipo"] == "Frota") &
+    (df["Programação"] == "Hoje")
+]
+
+total_prog = df_total_prog["Placa"].nunique()
+
+st.subheader("🔢 Total Programação Hoje")
+st.metric("Frota programada hoje", total_prog)
+
+# =========================
 # 📊 DONUT - PROGRAMAÇÃO HOJE (COM COR)
 # =========================
 import plotly.express as px
@@ -783,26 +804,6 @@ st.subheader("🚛 - Frota Lemar")
 
 st.dataframe(df_frota, use_container_width=True)
 
-# =========================
-# 🔢 TOTAL FROTA (BASE FROTA)
-# =========================
-total = df_frota["PLACA"].nunique()
-
-st.subheader("🔢 Total")
-st.metric("Total de placas frota", total)
-
-# =========================
-# 🔢 TOTAL PROGRAMAÇÃO HOJE
-# =========================
-df_total_prog = df[
-    (df["Tipo"] == "Frota") &
-    (df["Programação"] == "Hoje")
-]
-
-total_prog = df_total_prog["Placa"].nunique()
-
-st.subheader("🔢 Total Programação Hoje")
-st.metric("Frota programada hoje", total_prog)
 
 # =========================
 # 📊 TABELA
