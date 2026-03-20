@@ -541,6 +541,7 @@ df = df[[
     "Programação",
     "Rota",
     "Andamento",
+    "Ultima data PV",
     "Motorista"
 ]]
 # =========================
