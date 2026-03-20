@@ -665,7 +665,7 @@ df_frota = df_frota.merge(
     how="left"
 )
 
-df_frota = df_frota.drop(columns=["Placa"])
+df_frota = df_frota.drop(columns=["Placa_x", "Placa_y"], errors="ignore")
 
 df_frota = df_frota[[
     "PLACA", 
