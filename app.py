@@ -633,6 +633,17 @@ df_frota = pd.read_excel(BytesIO(conteudo_frota))
 # mantém apenas a coluna de placa
 df_frota = df_frota[["PLACA"]]
 
+# =========================
+# 🔗 MERGE COM OMNI (DATA DO REGISTRO)
+# =========================
+df_frota = df_frota.merge(
+    df[["Placa_clean", "Data do registro"]],
+    on="Placa_clean",
+    how="left"
+)
+
+df_frota = df_frota[["PLACA", "Data do registro"]]
+
 st.subheader("🚛 Placas Frota")
 
 st.dataframe(df_frota, use_container_width=True)
