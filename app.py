@@ -288,6 +288,16 @@ df["Programação"] = df["Programação"].apply(
         x.strftime("%Y-%m-%d") if pd.notnull(x) else None
     )
 )
+
+from datetime import datetime
+import pandas as pd
+
+hoje = pd.to_datetime(datetime.now().date())
+
+df["Status_Programacao"] = df["Programação"].apply(
+    lambda x: "Hoje" if pd.notnull(x) and pd.to_datetime(x).normalize() == hoje
+    else ("Realizado" if pd.notnull(x) and pd.to_datetime(x).normalize() < hoje else None)
+)
 # =========================
 # 🧠 OPERAÇÃO (ÚLTIMA)
 # =========================
