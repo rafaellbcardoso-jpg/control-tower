@@ -637,6 +637,19 @@ st.subheader("🔢 Total")
 st.metric("Frota com posição hoje", total)
 
 # =========================
+# 🔢 TOTAL PROGRAMAÇÃO HOJE
+# =========================
+df_total_prog = df[
+    (df["Tipo"] == "Frota") &
+    (df["Programação"] == "Hoje")
+]
+
+total_prog = df_total_prog["Placa"].nunique()
+
+st.subheader("🔢 Total Programação Hoje")
+st.metric("Frota programada hoje", total_prog)
+
+# =========================
 # 📊 TABELA
 # =========================
 st.title("🚛 Omnilink")
