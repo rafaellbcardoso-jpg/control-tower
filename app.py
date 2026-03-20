@@ -72,6 +72,11 @@ df["Posição"] = pd.to_datetime(
     df["Data de comunicação"].astype(str).str[4:24],
     errors="coerce" )
 
+df["Posição_limpa"] = pd.to_datetime(
+    df["Data de comunicação"],
+    errors="coerce"
+)
+
 # =========================
 # 🧠 TIPO
 # =========================
