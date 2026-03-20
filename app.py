@@ -349,7 +349,7 @@ rotas = []
 
 for _, row in df.iterrows():
 
-        if row["Programação"] == "Hoje" or row["Programação"] == str(hoje):
+    if row["Programação"] == "Hoje" or row["Programação"] == str(hoje):
 
         placa = row["Placa_clean"]
 
@@ -386,7 +386,7 @@ andamentos = []
 
 for _, row in df.iterrows():
 
-    if row["Programação"] == "Hoje":
+    if row["Programação"] == "Hoje" or row["Programação"] == str(hoje):
 
         placa = row["Placa_clean"]
 
@@ -405,14 +405,12 @@ for _, row in df.iterrows():
             if pd.notnull(eta_str) and pd.notnull(eta2_str) and pd.notnull(data_destino):
 
                 try:
-                    # INÍCIO (ETA)
                     eta_inicio = datetime.strptime(eta_str, "%H:%M").replace(
                         year=agora.year,
                         month=agora.month,
                         day=agora.day
                     )
 
-                    # FIM (DT_Destino + ETA_2)
                     data_destino = pd.to_datetime(data_destino, errors="coerce")
 
                     eta_fim = datetime.strptime(eta2_str, "%H:%M")
@@ -422,7 +420,6 @@ for _, row in df.iterrows():
                         day=data_destino.day
                     )
 
-                    # 🔥 LÓGICA
                     if agora > eta_fim:
                         andamento = "Finalizado"
 
