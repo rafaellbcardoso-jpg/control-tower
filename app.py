@@ -652,7 +652,7 @@ df_frota = df_frota.merge(
     df[["Placa", "Posição"]],
     left_on="PLACA",
     right_on="Placa",
-    how="left"
+    how="left",
     suffixes=("", "_drop")
 )
 
@@ -663,7 +663,7 @@ df_frota = df_frota.merge(
     df[["Placa", "Operação"]],
     left_on="PLACA",
     right_on="Placa",
-    how="left"
+    how="left",
     suffixes=("", "_drop")
 )
 # =========================
@@ -673,7 +673,7 @@ df_frota = df_frota.merge(
     df[["Placa", "Programação"]],
     left_on="PLACA",
     right_on="Placa",
-    how="left"
+    how="left",
     suffixes=("", "_drop")
 )
 
@@ -684,7 +684,7 @@ df_frota = df_frota.merge(
     df[["Placa", "Rota"]],
     left_on="PLACA",
     right_on="Placa",
-    how="left"
+    how="left",
     suffixes=("", "_drop")
 )
 
@@ -695,7 +695,7 @@ df_frota = df_frota.merge(
     df[["Placa", "Andamento"]],
     left_on="PLACA",
     right_on="Placa",
-    how="left"
+    how="left",
     suffixes=("", "_drop")
 )
 
@@ -706,7 +706,7 @@ df_frota = df_frota.merge(
     df[["Placa", "Motorista"]],
     left_on="PLACA",
     right_on="Placa",
-    how="left"
+    how="left",
     suffixes=("", "_drop")
 )
 # =========================
@@ -716,7 +716,7 @@ df_frota = df_frota.merge(
     df[["Placa", "Localização Atual"]],
     left_on="PLACA",
     right_on="Placa",
-    how="left"
+    how="left",
     suffixes=("", "_drop")
 )
 
