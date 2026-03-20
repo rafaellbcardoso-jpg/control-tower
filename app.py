@@ -184,7 +184,7 @@ if not df_pv.empty:
         df_pv["Placas"]
         .astype(str)
         .str.upper()
-        .str.replace(r"[^A-Z0-9]", "", regex=True)
+        .str.replace("-", "", regex=False)
     )
 
 # =========================
