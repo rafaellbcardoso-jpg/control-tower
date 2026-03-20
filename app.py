@@ -749,17 +749,31 @@ df_total_prog = df[
 total_prog = df_total_prog["Placa"].nunique()
 
 # =========================
-# 🔢 TOTAL ONTEM (BASE ROBO)
+# 🔢 TOTAL ONTEM (FROTA x ROBO)
 # =========================
 ontem = hoje - pd.Timedelta(days=1)
 
 df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
 
+# normaliza placas do robo
+df_pv["Placa_clean"] = (
+    df_pv["Placas"]
+    .astype(str)
+    .str.upper()
+    .str.replace("-", "", regex=False)
+)
+
+# filtra ontem
 df_ontem = df_pv[
     df_pv["Data"].dt.date == ontem
 ]
 
-total_ontem = df_ontem["Placas"].nunique()
+# mantém só placas da frota
+df_ontem = df_ontem[
+    df_ontem["Placa_clean"].isin(df_frota["Placa_clean"])
+]
+
+total_ontem = df_ontem["Placa_clean"].nunique()
 
 # =========================
 # 🔢 TOTAL -2 DIAS
