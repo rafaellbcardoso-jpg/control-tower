@@ -633,6 +633,9 @@ df_frota = pd.read_excel(BytesIO(conteudo_frota))
 # mantém apenas a coluna de placa
 df_frota = df_frota[["PLACA"]]
 
+st.subheader("🚛 Placas Frota")
+
+st.dataframe(df_frota, use_container_width=True)
 # =========================
 # 🔢 TOTAL FROTA HOJE
 # =========================
