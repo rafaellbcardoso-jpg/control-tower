@@ -653,6 +653,7 @@ df_frota = df_frota.merge(
     left_on="PLACA",
     right_on="Placa",
     how="left"
+    suffixes=("", "_drop")
 )
 
 # =========================
@@ -663,6 +664,7 @@ df_frota = df_frota.merge(
     left_on="PLACA",
     right_on="Placa",
     how="left"
+    suffixes=("", "_drop")
 )
 # =========================
 # 🔗 MERGE PROGRAMACAO
@@ -672,6 +674,7 @@ df_frota = df_frota.merge(
     left_on="PLACA",
     right_on="Placa",
     how="left"
+    suffixes=("", "_drop")
 )
 
 # =========================
@@ -682,6 +685,7 @@ df_frota = df_frota.merge(
     left_on="PLACA",
     right_on="Placa",
     how="left"
+    suffixes=("", "_drop")
 )
 
 # =========================
@@ -692,6 +696,7 @@ df_frota = df_frota.merge(
     left_on="PLACA",
     right_on="Placa",
     how="left"
+    suffixes=("", "_drop")
 )
 
 # =========================
@@ -702,6 +707,7 @@ df_frota = df_frota.merge(
     left_on="PLACA",
     right_on="Placa",
     how="left"
+    suffixes=("", "_drop")
 )
 # =========================
 # 🔗 MERGE LOCALIZACAO
@@ -711,9 +717,10 @@ df_frota = df_frota.merge(
     left_on="PLACA",
     right_on="Placa",
     how="left"
+    suffixes=("", "_drop")
 )
 
-df_frota = df_frota.drop(columns=["Placa_x", "Placa_y"], errors="ignore")
+df_frota = df_frota.drop(columns=[col for col in df_frota.columns if "_drop" in col], errors="ignore")
 
 df_frota = df_frota[[
     "PLACA", 
