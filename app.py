@@ -216,7 +216,7 @@ for _, row in df.iterrows():
         if not df_match.empty:
 
             linha = df_match.assign(
-            Data_tmp=pd.to_datetime(df_match["Data"], errors="coerce")
+                Data_tmp=pd.to_datetime(df_match["Data"], errors="coerce")
             ).sort_values("Data_tmp", ascending=False).iloc[0]
 
             programacao = linha.get("Data", None)
@@ -230,6 +230,21 @@ for _, row in df.iterrows():
     programacoes.append(programacao)
 
 df["Programação"] = programacoes
+
+
+# =========================
+# 🎯 FORMATAR PROGRAMAÇÃO
+# =========================
+
+from datetime import datetime
+
+hoje = datetime.now().date()
+
+df["Programação"] = df["Programação"].apply(
+    lambda x: "Hoje" if pd.notnull(x) and pd.to_datetime(x, errors="coerce", dayfirst=True).date() == hoje else (
+        pd.to_datetime(x, errors="coerce", dayfirst=True).strftime("%d/%m/%Y") if pd.notnull(x) else None
+    )
+)
 # =========================
 # 🧠 OPERAÇÃO (ÚLTIMA)
 # =========================
