@@ -602,13 +602,13 @@ df = df[[
 
 df_frota_hoje = df[
     (df["Tipo"] == "Frota") &
+    (df["Posição_limpa"].notna()) &
     (df["Posição_limpa"].dt.date == hoje)
 ]
 
 total = df_frota_hoje["Placa"].nunique()
 
 st.metric("Total", total)
-
 # =========================
 # 📊 OMNILINK
 # =========================
