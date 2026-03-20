@@ -592,95 +592,17 @@ df = df[[
 ]]
 
 # =========================
-# 📊 VALIDAÇÃO FROTA HOJE
+# 📊 TOTAL FROTA HOJE
 # =========================
-
-st.subheader("📊 Validação Frota Hoje")
 
 df_frota_hoje = df[
     (df["Tipo"] == "Frota") &
     (df["Posição"].dt.date == hoje)
-].copy()
+]
 
-total = len(df_frota_hoje)
+total = df_frota_hoje["Placa"].nunique()
 
-st.subheader("🔍 Amostra Base PV (robo)")
-
-# pega algumas placas da frota hoje
-placas_teste = df_frota_hoje["Placa"].head(10)
-
-df_debug = df_pv[
-    df_pv["Placas"].isin(placas_teste)
-].copy()
-
-st.dataframe(df_debug, use_container_width=True)
-
-# 🔹 BUSCA FINALIZAÇÃO
-finalizacoes = []
-
-for _, row in df_frota_hoje.iterrows():
-
-    placa = str(row["Placa"]).upper().replace("-", "").replace(" ", "")
-
-    df_match = df_pv[
-        df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
-    ]
-
-    if not df_match.empty:
-        linha = df_match.sort_values("DT_Destino", ascending=False).iloc[0]
-
-        data_destino = linha.get("DT_Destino", None)
-        eta2 = linha.get("ETA_2", None)
-
-        if pd.notnull(data_destino) and pd.notnull(eta2):
-            try:
-                hora = pd.to_datetime(eta2).to_pydatetime()
-
-                final = hora.replace(
-                    year=data_destino.year,
-                    month=data_destino.month,
-                    day=data_destino.day
-                )
-            except:
-                final = None
-        else:
-            final = None
-    else:
-        final = None
-
-    finalizacoes.append(final)
-
-df_frota_hoje["Finalizacao"] = finalizacoes
-
-# 🔹 CLASSIFICAÇÃO
-status = []
-
-for _, row in df_frota_hoje.iterrows():
-
-    final = row["Finalizacao"]
-
-    if pd.isna(final):
-        status.append("Sem dados")
-
-    elif final.date() == hoje:
-        if final > agora:
-            status.append("Em operação")
-        else:
-            status.append("Usado hoje")
-
-    elif final < datetime.combine(hoje, datetime.min.time()):
-        status.append("Não utilizado")
-
-    else:
-        status.append("Não utilizado")
-
-df_frota_hoje["Status"] = status
-
-# 🔹 RESUMO
-resumo = df_frota_hoje["Status"].value_counts().reset_index()
-resumo.columns = ["Status", "Quantidade"]
-
-st.dataframe(resumo, use_container_width=True)
+st.metric("Total", total)
 
 # =========================
 # 📊 OMNILINK
