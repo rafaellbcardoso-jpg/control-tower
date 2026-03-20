@@ -733,6 +733,52 @@ df_frota = df_frota[[
     "Motorista"
 ]]
 
+# =========================
+# 📊 DONUT - PROGRAMAÇÃO HOJE (COM COR)
+# =========================
+import plotly.express as px
+
+nao_programados = total - total_prog
+
+percentual = (total_prog / total * 100) if total > 0 else 0
+
+# 🎨 definição de cor
+if percentual >= 80:
+    cor = "green"
+elif percentual >= 60:
+    cor = "yellow"
+else:
+    cor = "red"
+
+df_graf = pd.DataFrame({
+    "Status": ["Programados Hoje", "Não Programados"],
+    "Qtd": [total_prog, nao_programados]
+})
+
+fig = px.pie(
+    df_graf,
+    names="Status",
+    values="Qtd",
+    hole=0.6
+)
+
+# 🎨 aplica cor (principal + cinza)
+fig.update_traces(
+    marker=dict(colors=[cor, "#E0E0E0"])
+)
+
+fig.update_layout(
+    annotations=[dict(
+        text=f"{percentual:.1f}%",
+        x=0.5,
+        y=0.5,
+        showarrow=False,
+        font_size=22
+    )]
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
 st.subheader("🚛 - Frota Lemar")
 
 st.dataframe(df_frota, use_container_width=True)
