@@ -602,7 +602,7 @@ df = df[[
 
 df_frota_hoje = df[
     (df["Tipo"] == "Frota") &
-    (df["Posição_limpa"].dt.date == hoje)
+    (df["Posição"].dt.date == hoje)
 ]
 
 total = df_frota_hoje["Placa"].nunique()
