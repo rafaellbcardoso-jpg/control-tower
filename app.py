@@ -649,9 +649,9 @@ df_frota["Placa_clean"] = (
 # 🔗 MERGE COM OMNI (CRU)
 # =========================
 df_frota = df_frota.merge(
-    df[["Placa_clean", "Posição"]],
-    left_on="Placa_clean",
-    right_on="Placa_clean",
+    df[["Placa", "Posição"]],
+    left_on="PLACA",
+    right_on="Placa",
     how="left"
 )
 
