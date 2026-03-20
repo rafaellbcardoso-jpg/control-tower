@@ -187,21 +187,6 @@ if not df_pv.empty:
         .str.replace(r"[^A-Z0-9]", "", regex=True)
     )
 
-    placas_teste_clean = (
-        placas_teste
-        .astype(str)
-        .str.upper()
-        .str.replace(r"[^A-Z0-9]", "", regex=True)
-    )
-
-    df_debug = df_pv[
-        df_pv["Placas_clean"].isin(placas_teste_clean)
-    ].copy()
-
-    st.dataframe(df_debug, use_container_width=True)
-else:
-    st.write("Base PV vazia")
-    
 # =========================
 # 🔧 NORMALIZAR OMNI
 # =========================
@@ -606,35 +591,26 @@ df = df[[
 ]]
 
 # =========================
-# 📊 VALIDAÇÃO FROTA HOJE
+# 📊 DASHBOARD FROTA HOJE
 # =========================
 
-st.subheader("📊 Validação Frota Hoje")
+st.subheader("📊 Status da Frota (Hoje)")
 
+import plotly.express as px
+
+# 🔹 FILTRA FROTA QUE POSICIONOU HOJE
 df_frota_hoje = df[
     (df["Tipo"] == "Frota") &
     (df["Posição"].dt.date == hoje)
 ].copy()
 
-total = len(df_frota_hoje)
+# 🔹 MONTA FINALIZAÇÃO (DT_Destino + ETA_2)
+df_pv["DT_Destino"] = pd.to_datetime(df_pv["DT_Destino"], errors="coerce", dayfirst=True)
 
-st.subheader("🔍 Amostra Base PV (robo)")
-
-# pega algumas placas da frota hoje
-placas_teste = df_frota_hoje["Placa"].head(10)
-
-df_debug = df_pv[
-    df_pv["Placas"].isin(placas_teste)
-].copy()
-
-st.dataframe(df_debug, use_container_width=True)
-
-# 🔹 BUSCA FINALIZAÇÃO
 finalizacoes = []
 
 for _, row in df_frota_hoje.iterrows():
-
-    placa = str(row["Placa"]).upper().replace("-", "").replace(" ", "")
+    placa = row["Placa_clean"]
 
     df_match = df_pv[
         df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
@@ -648,8 +624,7 @@ for _, row in df_frota_hoje.iterrows():
 
         if pd.notnull(data_destino) and pd.notnull(eta2):
             try:
-                hora = pd.to_datetime(eta2).to_pydatetime()
-
+                hora = datetime.strptime(eta2, "%H:%M")
                 final = hora.replace(
                     year=data_destino.year,
                     month=data_destino.month,
@@ -674,51 +649,37 @@ for _, row in df_frota_hoje.iterrows():
     final = row["Finalizacao"]
 
     if pd.isna(final):
-        status.append("Sem dados")
+        status.append("🔴 Não utilizado")
 
     elif final.date() == hoje:
         if final > agora:
-            status.append("Em operação")
+            status.append("🟡 Em operação")
         else:
-            status.append("Usado hoje")
+            status.append("🟢 Usado hoje")
 
     elif final < datetime.combine(hoje, datetime.min.time()):
-        status.append("Não utilizado")
+        status.append("🔴 Não utilizado")
 
     else:
-        status.append("Não utilizado")
+        status.append("🔴 Não utilizado")
 
 df_frota_hoje["Status"] = status
 
-# 🔹 RESUMO
+# 🔹 CONTAGEM
 resumo = df_frota_hoje["Status"].value_counts().reset_index()
-resumo.columns = ["Status", "Quantidade"]
+resumo.columns = ["Status", "Qtd"]
 
-st.dataframe(resumo, use_container_width=True)
+# 🔹 GRÁFICO
+fig = px.pie(
+    resumo,
+    names="Status",
+    values="Qtd",
+    hole=0.5
+)
 
-# =========================
-# DEBUG PV (TEMPORÁRIO)
-# =========================
-st.write("DEBUG PV")
+st.plotly_chart(fig, use_container_width=True)
 
-try:
-    placas_teste = df["Placa"].head(5)
 
-    placas_teste_clean = (
-        placas_teste
-        .astype(str)
-        .str.upper()
-        .str.replace(r"[^A-Z0-9]", "", regex=True)
-    )
-
-    df_debug = df_pv[
-        df_pv["Placas_clean"].isin(placas_teste_clean)
-    ].copy()
-
-    st.write(df_debug.head())
-
-except Exception as e:
-    st.write("Erro debug:", e)
 
 # =========================
 # 📊 OMNILINK
