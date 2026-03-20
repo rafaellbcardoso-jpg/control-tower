@@ -655,7 +655,23 @@ df_frota = df_frota.merge(
     how="left"
 )
 
-df_frota = df_frota[["PLACA", "Posição"]]
+# =========================
+# 🔗 MERGE OPERACAO
+# =========================
+df_frota = df_frota.merge(
+    df[["Placa", "Operação"]],
+    left_on="PLACA",
+    right_on="Placa",
+    how="left"
+)
+
+df_frota = df_frota.drop(columns=["Placa"])
+
+df_frota = df_frota[[
+    "PLACA", 
+    "Posição",
+    "Operação"
+]]
 
 st.subheader("🚛 Placas Frota")
 
