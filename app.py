@@ -756,7 +756,7 @@ ontem = hoje - pd.Timedelta(days=1)
 df_pv["Data"] = pd.to_datetime(df_pv["Data"], errors="coerce", dayfirst=True)
 
 # normaliza placas do robo
-df_pv["Placa"] = (
+df_pv["PLACA"] = (
     df_pv["Placas"]
     .astype(str)
     .str.upper()
