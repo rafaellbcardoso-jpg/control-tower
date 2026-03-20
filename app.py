@@ -72,11 +72,6 @@ df["Posição"] = pd.to_datetime(
     df["Data de comunicação"].astype(str).str[4:24],
     errors="coerce" )
 
-df["Posição_limpa"] = pd.to_datetime(
-    df["Data de comunicação"],
-    errors="coerce"
-)
-
 # =========================
 # 🧠 TIPO
 # =========================
@@ -184,7 +179,6 @@ if dfs_pv:
 # =========================
 # 🔧 NORMALIZAR PV
 # =========================
-
 if not df_pv.empty:
     df_pv["Placas_clean"] = (
         df_pv["Placas"]
@@ -192,7 +186,7 @@ if not df_pv.empty:
         .str.upper()
         .str.replace(r"[^A-Z0-9]", "", regex=True)
     )
-    
+
 # =========================
 # 🔧 NORMALIZAR OMNI
 # =========================
@@ -595,53 +589,47 @@ df = df[[
     "Andamento",
     "Motorista"
 ]]
+# =========================
+# 🎯 FILTROS
+# =========================
+st.sidebar.title("Filtros")
+
+# 🔹 GARANTE COLUNAS
+if "Tipo" not in df.columns:
+    df["Tipo"] = None
+
+if "Operação" not in df.columns:
+    df["Operação"] = None
+
+# 🔹 FILTRO TIPO
+tipo_selecionado = st.sidebar.multiselect(
+    "Tipo",
+    options=df["Tipo"].dropna().unique(),
+    default=df["Tipo"].dropna().unique()
+)
+
+# 🔹 FILTRO OPERAÇÃO
+operacao_selecionada = st.sidebar.multiselect(
+    "Operação",
+    options=df["Operação"].dropna().unique(),
+    default=df["Operação"].dropna().unique()
+)
 
 # =========================
-# 📊 TOTAL FROTA HOJE
+# 🔍 APLICAR FILTROS
 # =========================
-
-df_frota_hoje = df[
-    (df["Tipo"] == "Frota") &
-    (df["Posição"].dt.date == hoje)
-]
-
-total = df_frota_hoje["Placa"].nunique()
-
-st.metric("Total", total)
-# =========================
-# 📊 OMNILINK
-# =========================
-st.title("🚛 Omnilink")
-
-# 🔹 FILTROS LOCAIS
-col1, col2 = st.columns(2)
-
-with col1:
-    tipo_selecionado = st.multiselect(
-        "Tipo",
-        options=df["Tipo"].dropna().unique(),
-        default=df["Tipo"].dropna().unique()
-    )
-
-with col2:
-    operacao_selecionada = st.multiselect(
-        "Operação",
-        options=df["Operação"].dropna().unique(),
-        default=df["Operação"].dropna().unique()
-    )
-
-# 🔹 APLICA FILTRO LOCAL
-df_omni = df[
+df_filtrado = df[
     df["Tipo"].isin(tipo_selecionado) &
     df["Operação"].isin(operacao_selecionada)
 ]
-
-# 🔹 TABELA OMNILINK
-st.dataframe(df_omni, use_container_width=True)
-
 # =========================
-# 🧑‍✈️ MOTORISTAS
+# 📊 TABELA
 # =========================
+st.title("🚛 Omnilink")
+
+st.dataframe(df_filtrado, use_container_width=True)
+
+# 👇 AQUI
 st.subheader("🧑‍✈️ Motoristas Disponíveis (>12h)")
 
 st.dataframe(
