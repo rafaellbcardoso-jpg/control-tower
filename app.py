@@ -736,18 +736,15 @@ df_frota = df_frota[[
 st.subheader("🚛 - Frota Lemar")
 
 st.dataframe(df_frota, use_container_width=True)
-# =========================
-# 🔢 TOTAL FROTA HOJE (BASE FROTA)
-# =========================
-df_total = df_frota[
-    df_frota["Posição"].notna() &
-    (df_frota["Posição"].dt.date == hoje)
-]
 
-total = df_total["PLACA"].nunique()
+# =========================
+# 🔢 TOTAL FROTA (BASE FROTA)
+# =========================
+total = df_frota["PLACA"].nunique()
 
 st.subheader("🔢 Total")
-st.metric("Frota com posição hoje", total)
+st.metric("Total de placas frota", total)
+
 # =========================
 # 🔢 TOTAL PROGRAMAÇÃO HOJE
 # =========================
