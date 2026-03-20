@@ -622,6 +622,16 @@ df_filtrado = df[
     df["Tipo"].isin(tipo_selecionado) &
     df["Operação"].isin(operacao_selecionada)
 ]
+# =========================
+# 🚛 BASE FROTA (BUCKET)
+# =========================
+blob_frota = bucket.blob("frota/Frota-Att.xlsx")
+conteudo_frota = blob_frota.download_as_bytes()
+
+df_frota = pd.read_excel(BytesIO(conteudo_frota))
+
+# mantém apenas a coluna de placa
+df_frota = df_frota[["PLACA"]]
 
 # =========================
 # 🔢 TOTAL FROTA HOJE
