@@ -536,14 +536,6 @@ st.title("🚛 Omnilink")
 
 st.dataframe(df_filtrado, use_container_width=True)
 
-# 👇 AQUI
-st.subheader("🧑‍✈️ Motoristas Disponíveis (>12h)")
-
-st.dataframe(
-    df_disp[["Motoristas", "Horas sem viagem"]],
-    use_container_width=True
-)
-
 # =========================
 # 🗺️ MAPA
 # =========================
