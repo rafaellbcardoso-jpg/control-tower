@@ -761,9 +761,9 @@ st.metric("Frota programada hoje", total_prog)
 # =========================
 # 📊 TABELA
 # =========================
-st.title("🚛 Omnilink")
+#st.title("🚛 Omnilink")
 
-st.dataframe(df_filtrado, use_container_width=True)
+#st.dataframe(df_filtrado, use_container_width=True)
 
 # 👇 AQUI
 st.subheader("🧑‍✈️ Motoristas Disponíveis (>12h)")
