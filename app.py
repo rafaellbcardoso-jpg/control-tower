@@ -12,13 +12,9 @@ from io import BytesIO
 # 🧠 NOW GLOBAL (PADRÃO)
 # =========================
 from datetime import datetime
-import pytz
 
-tz = pytz.timezone("America/Sao_Paulo")
-
-agora = datetime.now(tz)
+agora = datetime.now()
 hoje = agora.date()
-
 BUCKET_NAME = "control-tower-dados"
 
 credentials = service_account.Credentials.from_service_account_info(
@@ -31,6 +27,24 @@ client = storage.Client(
 )
 
 bucket = client.bucket(BUCKET_NAME)
+
+# =========================
+# 🔽 BASE MOTORISTAS (BUCKET)
+# =========================
+blobs_moto = list(bucket.list_blobs(prefix="motoristas/"))
+
+dfs_moto = []
+
+for blob in blobs_moto:
+    if blob.name.endswith(".xlsx"):
+        content = blob.download_as_bytes()
+        df_temp = pd.read_excel(BytesIO(content))
+        dfs_moto.append(df_temp)
+
+df_moto = pd.DataFrame()
+
+if dfs_moto:
+    df_moto = pd.concat(dfs_moto, ignore_index=True)
 
 # =========================
 # 🔽 BASE OMNILINK
@@ -173,6 +187,21 @@ if not df_pv.empty:
         .str.replace(r"[^A-Z0-9]", "", regex=True)
     )
 
+    placas_teste_clean = (
+        placas_teste
+        .astype(str)
+        .str.upper()
+        .str.replace(r"[^A-Z0-9]", "", regex=True)
+    )
+
+    df_debug = df_pv[
+        df_pv["Placas_clean"].isin(placas_teste_clean)
+    ].copy()
+
+    st.dataframe(df_debug, use_container_width=True)
+else:
+    st.write("Base PV vazia")
+    
 # =========================
 # 🔧 NORMALIZAR OMNI
 # =========================
@@ -285,20 +314,12 @@ df["Programação"] = datas
 
 from datetime import datetime
 
+hoje = datetime.now().date()
+
 df["Programação"] = df["Programação"].apply(
     lambda x: "Hoje" if pd.notnull(x) and x.date() == hoje else (
         x.strftime("%Y-%m-%d") if pd.notnull(x) else None
     )
-)
-
-from datetime import datetime
-import pandas as pd
-
-
-
-df["Status_Programacao"] = df["Programação"].apply(
-    lambda x: "Hoje" if pd.notnull(x) and pd.to_datetime(x).normalize() == hoje
-    else ("Realizado" if pd.notnull(x) and pd.to_datetime(x).normalize() < hoje else None)
 )
 # =========================
 # 🧠 OPERAÇÃO (ÚLTIMA)
@@ -495,6 +516,81 @@ for _, row in df.iterrows():
 df["Motorista"] = motoristas
 
 # =========================
+# 🧠 DISPONIBILIDADE MOTORISTAS (BASE NOVA)
+# =========================
+
+df_pv["DT_Destino"] = pd.to_datetime(df_pv["DT_Destino"], errors="coerce", dayfirst=True)
+
+motoristas_lista = df_moto["Motoristas"].dropna().unique()
+
+registros = []
+
+for motorista in motoristas_lista:
+
+    df_match = df_pv[df_pv["Motoristas"] == motorista]
+
+    if not df_match.empty:
+
+        # pega última linha pela data
+        linha = df_match.sort_values("DT_Destino", ascending=False).iloc[0]
+
+        data_destino = linha.get("DT_Destino", None)
+        eta2_str = linha.get("ETA_2", None)
+
+        if pd.notnull(data_destino) and pd.notnull(eta2_str):
+
+            try:
+                # monta data + hora final
+                hora = datetime.strptime(eta2_str, "%H:%M")
+
+                fim_viagem = hora.replace(
+                    year=data_destino.year,
+                    month=data_destino.month,
+                    day=data_destino.day
+                )
+
+                horas = (agora - fim_viagem).total_seconds() / 3600
+
+            except:
+                horas = None
+        else:
+            horas = None
+    else:
+        horas = None
+
+    # 🔥 STATUS BASE MOTO
+    status_base = df_moto.loc[
+        df_moto["Motoristas"] == motorista, "Status Motorista"
+    ]
+    status_base = status_base.iloc[0] if not status_base.empty else None
+
+    # 🔥 CLASSIFICAÇÃO
+    if horas is None:
+        status_final = None
+
+    elif horas < 0:
+        status_final = "🟡 Disponível em breve"
+
+    elif horas <= 12:
+        status_final = "🔴 Em descanso"
+
+    else:
+        status_final = "🟢 Disponível"
+
+    registros.append({
+        "Motoristas": motorista,
+        "Horas sem viagem": horas,
+        "Status": status_base,
+        "Disponibilidade": status_final
+    })
+
+df_disp = pd.DataFrame(registros)
+
+df_disp["Horas sem viagem"] = df_disp["Horas sem viagem"].round(1)
+
+df_disp = df_disp.sort_values("Horas sem viagem", ascending=False)
+
+# =========================
 # 🔽 COLUNAS
 # =========================
 df = df[[
@@ -504,50 +600,166 @@ df = df[[
     "Posição",
     "Localização Atual",
     "Programação",
-    "Status_Programacao",
     "Rota",
     "Andamento",
     "Motorista"
 ]]
-# =========================
-# 🎯 FILTROS
-# =========================
-st.sidebar.title("Filtros")
-
-# 🔹 GARANTE COLUNAS
-if "Tipo" not in df.columns:
-    df["Tipo"] = None
-
-if "Operação" not in df.columns:
-    df["Operação"] = None
-
-# 🔹 FILTRO TIPO
-tipo_selecionado = st.sidebar.multiselect(
-    "Tipo",
-    options=df["Tipo"].dropna().unique(),
-    default=df["Tipo"].dropna().unique()
-)
-
-# 🔹 FILTRO OPERAÇÃO
-operacao_selecionada = st.sidebar.multiselect(
-    "Operação",
-    options=df["Operação"].dropna().unique(),
-    default=df["Operação"].dropna().unique()
-)
 
 # =========================
-# 🔍 APLICAR FILTROS
+# 📊 VALIDAÇÃO FROTA HOJE
 # =========================
-df_filtrado = df[
-    df["Tipo"].isin(tipo_selecionado) &
-    df["Operação"].isin(operacao_selecionada)
-]
+
+st.subheader("📊 Validação Frota Hoje")
+
+df_frota_hoje = df[
+    (df["Tipo"] == "Frota") &
+    (df["Posição"].dt.date == hoje)
+].copy()
+
+total = len(df_frota_hoje)
+
+st.subheader("🔍 Amostra Base PV (robo)")
+
+# pega algumas placas da frota hoje
+placas_teste = df_frota_hoje["Placa"].head(10)
+
+df_debug = df_pv[
+    df_pv["Placas"].isin(placas_teste)
+].copy()
+
+st.dataframe(df_debug, use_container_width=True)
+
+# 🔹 BUSCA FINALIZAÇÃO
+finalizacoes = []
+
+for _, row in df_frota_hoje.iterrows():
+
+    placa = str(row["Placa"]).upper().replace("-", "").replace(" ", "")
+
+    df_match = df_pv[
+        df_pv["Placas_clean"].str.contains(rf"{placa}(?![A-Z0-9])", na=False, regex=True)
+    ]
+
+    if not df_match.empty:
+        linha = df_match.sort_values("DT_Destino", ascending=False).iloc[0]
+
+        data_destino = linha.get("DT_Destino", None)
+        eta2 = linha.get("ETA_2", None)
+
+        if pd.notnull(data_destino) and pd.notnull(eta2):
+            try:
+                hora = pd.to_datetime(eta2).to_pydatetime()
+
+                final = hora.replace(
+                    year=data_destino.year,
+                    month=data_destino.month,
+                    day=data_destino.day
+                )
+            except:
+                final = None
+        else:
+            final = None
+    else:
+        final = None
+
+    finalizacoes.append(final)
+
+df_frota_hoje["Finalizacao"] = finalizacoes
+
+# 🔹 CLASSIFICAÇÃO
+status = []
+
+for _, row in df_frota_hoje.iterrows():
+
+    final = row["Finalizacao"]
+
+    if pd.isna(final):
+        status.append("Sem dados")
+
+    elif final.date() == hoje:
+        if final > agora:
+            status.append("Em operação")
+        else:
+            status.append("Usado hoje")
+
+    elif final < datetime.combine(hoje, datetime.min.time()):
+        status.append("Não utilizado")
+
+    else:
+        status.append("Não utilizado")
+
+df_frota_hoje["Status"] = status
+
+# 🔹 RESUMO
+resumo = df_frota_hoje["Status"].value_counts().reset_index()
+resumo.columns = ["Status", "Quantidade"]
+
+st.dataframe(resumo, use_container_width=True)
+
 # =========================
-# 📊 TABELA
+# DEBUG PV (TEMPORÁRIO)
+# =========================
+st.write("DEBUG PV")
+
+try:
+    placas_teste = df["Placa"].head(5)
+
+    placas_teste_clean = (
+        placas_teste
+        .astype(str)
+        .str.upper()
+        .str.replace(r"[^A-Z0-9]", "", regex=True)
+    )
+
+    df_debug = df_pv[
+        df_pv["Placas_clean"].isin(placas_teste_clean)
+    ].copy()
+
+    st.write(df_debug.head())
+
+except Exception as e:
+    st.write("Erro debug:", e)
+
+# =========================
+# 📊 OMNILINK
 # =========================
 st.title("🚛 Omnilink")
 
-st.dataframe(df_filtrado, use_container_width=True)
+# 🔹 FILTROS LOCAIS
+col1, col2 = st.columns(2)
+
+with col1:
+    tipo_selecionado = st.multiselect(
+        "Tipo",
+        options=df["Tipo"].dropna().unique(),
+        default=df["Tipo"].dropna().unique()
+    )
+
+with col2:
+    operacao_selecionada = st.multiselect(
+        "Operação",
+        options=df["Operação"].dropna().unique(),
+        default=df["Operação"].dropna().unique()
+    )
+
+# 🔹 APLICA FILTRO LOCAL
+df_omni = df[
+    df["Tipo"].isin(tipo_selecionado) &
+    df["Operação"].isin(operacao_selecionada)
+]
+
+# 🔹 TABELA OMNILINK
+st.dataframe(df_omni, use_container_width=True)
+
+# =========================
+# 🧑‍✈️ MOTORISTAS
+# =========================
+st.subheader("🧑‍✈️ Motoristas Disponíveis (>12h)")
+
+st.dataframe(
+    df_disp[["Motoristas", "Horas sem viagem","Disponibilidade","Status"]],
+    use_container_width=True
+)
 
 # =========================
 # 🗺️ MAPA
