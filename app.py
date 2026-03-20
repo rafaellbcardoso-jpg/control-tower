@@ -502,6 +502,7 @@ df = df[[
     "Posição",
     "Localização Atual",
     "Programação",
+    "Status_Programacao",
     "Rota",
     "Andamento",
     "Motorista"
