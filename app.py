@@ -215,7 +215,9 @@ for _, row in df.iterrows():
 
         if not df_match.empty:
 
-            linha = df_match.sort_values("Data", ascending=False).iloc[0]
+            linha = df_match.assign(
+            Data_tmp=pd.to_datetime(df_match["Data"], errors="coerce")
+            ).sort_values("Data_tmp", ascending=False).iloc[0]
 
             programacao = linha.get("Data", None)
 
