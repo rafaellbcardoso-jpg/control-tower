@@ -781,16 +781,24 @@ for _, row in df_ontem.iterrows():
 total_ontem = len(placas_ontem)
 
 # =========================
-# 🔢 TOTAL -2 DIAS
+# 🔢 TOTAL -2 DIAS (FROTA x ROBO)
 # =========================
 dois_dias = hoje - pd.Timedelta(days=2)
 
-df_2dias = df[
-    (df["Tipo"] == "Frota") &
-    (pd.to_datetime(df["Programação"], errors="coerce").dt.date == dois_dias)
+df_2dias = df_pv[
+    df_pv["Data"].dt.date == dois_dias
 ]
 
-total_2dias = df_2dias["Placa"].nunique()
+placas_2dias = set()
+
+for _, row in df_2dias.iterrows():
+    texto = str(row["Placas"]).upper().replace("-", "")
+    
+    for placa in placas_frota:
+        if placa in texto:
+            placas_2dias.add(placa)
+
+total_2dias = len(placas_2dias)
 
 # =========================
 # 📊 CARDS
