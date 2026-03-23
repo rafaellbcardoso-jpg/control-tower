@@ -883,9 +883,9 @@ st.markdown("""
 }
 
 .total { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 4px solid #3b82f6;}
-.hoje { background: linear-gradient(135deg, #022c22, #064e3b); border-bottom: 4px solid #10b981;}
-.ontem { background: linear-gradient(135deg, #3f2d00, #78350f); border-bottom: 4px solid #f59e0b;}
-.dois { background: linear-gradient(135deg, #3b0a1a, #7f1d1d); border-bottom: 4px solid #f43f5e;}
+.hoje { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 4px solid #3b82f6;}
+.ontem { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 4px solid #3b82f6;}
+.dois { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 4px solid #3b82f6;}
 
 .titulo { font-size: 14px; opacity: 0.8; }
 .valor { font-size: 42px; font-weight: bold; }
