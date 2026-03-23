@@ -67,7 +67,7 @@ url_imagem = "https://storage.googleapis.com/control-tower-dados/imagens/Imagem%
 
 st.markdown(f"""
 <style>
-.banner {
+.banner {{
     position: relative;
     background-image: url("{url_imagem}");
     background-size: cover;
@@ -76,14 +76,13 @@ st.markdown(f"""
     padding: 60px;
     margin-bottom: 20px;
     overflow: hidden;
-}
+}}
 
-/* overlay escuro com transparência */
 .banner::before {{
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5); /* 🔥 50% transparência */
+    background: rgba(0, 0, 0, 0.5);
 }}
 
 .banner-content {{
@@ -105,14 +104,6 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="banner">
-    <div class="banner-content">
-        <div class="banner-title">Painel de controle Frota</div>
-        <div class="banner-sub">Operação em tempo real</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 # =========================
 # 🧠 NOW GLOBAL (PADRÃO)
 # =========================
