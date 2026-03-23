@@ -1,6 +1,57 @@
 import streamlit as st
 st.set_page_config(layout="wide")
 
+####
+#CONFIG
+####
+st.markdown("""
+<style>
+.header {
+    background: linear-gradient(135deg, #0b1f3a, #0f2f5c);
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon {
+    background: rgba(255,255,255,0.08);
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.title {
+    font-size: 26px;
+    font-weight: bold;
+    color: white;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+# =========================
+# 🔷 HEADER
+# =========================
+st.markdown("""
+<div class="header">
+    <div class="icon">🚛</div>
+    <div>
+        <div class="title">Torre Lemar</div>
+        <div class="subtitle">Gestão em tempo real</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+####
+#CONFIG
+####
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import BallTree
