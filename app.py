@@ -196,40 +196,6 @@ def corrigir_coord(valor):
 df["Latitude_corrigida"] = df["Latitude"].apply(corrigir_coord)
 df["Longitude_corrigida"] = df["Longitude"].apply(corrigir_coord)
 
-# =========================
-# 🚨 ALERTA PARADA - HISTÓRICO SJM
-# =========================
-
-df_hist = df.copy()
-
-# garante ordenação correta
-df_hist = df_hist.sort_values(by=["Placa", "Posição"])
-
-# cidade alvo
-cidade_alvo = "SAO JOAO DE MERITI-RJ"
-
-# filtra apenas cidade
-df_hist["Cidade_Alvo"] = df_hist["Localização Atual"] == cidade_alvo
-
-# shift para pegar próxima linha da mesma placa
-df_hist["Prox_Posicao"] = df_hist.groupby("Placa")["Posição"].shift(-1)
-df_hist["Prox_Cidade"] = df_hist.groupby("Placa")["Cidade_Alvo"].shift(-1)
-
-# calcula duração
-df_hist["Tempo"] = (df_hist["Prox_Posicao"] - df_hist["Posição"]).dt.total_seconds() / 3600
-
-# pega apenas períodos dentro da cidade
-df_paradas = df_hist[
-    (df_hist["Cidade_Alvo"] == True) &
-    (df_hist["Tempo"].notna()) &
-    (df_hist["Tempo"] > 0)
-]
-
-# média de tempo
-media_tempo = df_paradas["Tempo"].mean()
-
-# quantidade de ocorrências
-qtd_paradas = len(df_paradas)
 
 # =========================
 # 🔥 ÚLTIMA POSIÇÃO
@@ -287,6 +253,40 @@ df = df.merge(
     on="Placa",
     how="left"
 )
+# =========================
+# 🚨 ALERTA PARADA - HISTÓRICO SJM
+# =========================
+
+df_hist = df.copy()
+
+# garante ordenação correta
+df_hist = df_hist.sort_values(by=["Placa", "Posição"])
+
+# cidade alvo
+cidade_alvo = "SAO JOAO DE MERITI-RJ"
+
+# filtra apenas cidade
+df_hist["Cidade_Alvo"] = df_hist["Localização Atual"] == cidade_alvo
+
+# shift para pegar próxima linha da mesma placa
+df_hist["Prox_Posicao"] = df_hist.groupby("Placa")["Posição"].shift(-1)
+df_hist["Prox_Cidade"] = df_hist.groupby("Placa")["Cidade_Alvo"].shift(-1)
+
+# calcula duração
+df_hist["Tempo"] = (df_hist["Prox_Posicao"] - df_hist["Posição"]).dt.total_seconds() / 3600
+
+# pega apenas períodos dentro da cidade
+df_paradas = df_hist[
+    (df_hist["Cidade_Alvo"] == True) &
+    (df_hist["Tempo"].notna()) &
+    (df_hist["Tempo"] > 0)
+]
+
+# média de tempo
+media_tempo = df_paradas["Tempo"].mean()
+
+# quantidade de ocorrências
+qtd_paradas = len(df_paradas)
 
 # =========================
 # 🔽 BASE PV (BUCKET)
