@@ -323,6 +323,7 @@ df_paradas = df_hist[
 # =========================
 media_tempo = df_paradas["Tempo"].mean()
 qtd_paradas = len(df_paradas)
+
 # =========================
 # 🔽 BASE PV (BUCKET)
 # =========================
@@ -348,6 +349,37 @@ if dfs_pv:
 if not df_pv.empty:
     df_pv["Placas_clean"] = (
         df_pv["Placas"]
+        .astype(str)
+        .str.upper()
+        .str.replace("-", "", regex=False)
+    )
+
+# =========================
+# 🔽 BASE WR (PROGRAMAÇÃO FUTURA)
+# =========================
+
+blobs_wr = list(bucket.list_blobs(prefix="wr/"))
+
+dfs_wr = []
+
+for blob in blobs_wr:
+    if blob.name.endswith(".csv"):
+        content = blob.download_as_bytes()
+        df_temp = pd.read_csv(BytesIO(content))
+        dfs_wr.append(df_temp)
+
+# 🔒 garante que df_wr sempre existe
+df_wr = pd.DataFrame()
+
+if dfs_wr:
+    df_wr = pd.concat(dfs_wr, ignore_index=True)
+
+# =========================
+# 🔧 NORMALIZAR WR (MESMO PADRÃO PV)
+# =========================
+if not df_wr.empty:
+    df_wr["Placas_clean"] = (
+        df_wr["PLACA"]
         .astype(str)
         .str.upper()
         .str.replace("-", "", regex=False)
