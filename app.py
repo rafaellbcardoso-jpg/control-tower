@@ -254,40 +254,75 @@ df = df.merge(
     how="left"
 )
 # =========================
-# 🚨 ALERTA PARADA - HISTÓRICO SJM
+# 🚨 ALERTA PARADA - SJM (HISTÓRICO REAL)
 # =========================
 
-df_hist = df.copy()
+dfs_hist = []
 
-# garante ordenação correta
+for blob in blobs:
+    if blob.name.endswith(".csv"):
+        content = blob.download_as_bytes()
+        df_temp = pd.read_csv(BytesIO(content))
+        dfs_hist.append(df_temp)
+
+df_hist = pd.concat(dfs_hist, ignore_index=True)
+
+# =========================
+# 🧠 POSIÇÃO
+# =========================
+df_hist["Posição"] = pd.to_datetime(
+    df_hist["Data de comunicação"].astype(str).str[4:24],
+    errors="coerce"
+)
+
+# =========================
+# 🔧 CORREÇÃO LAT/LONG
+# =========================
+df_hist["Latitude_corrigida"] = df_hist["Latitude"].apply(corrigir_coord)
+df_hist["Longitude_corrigida"] = df_hist["Longitude"].apply(corrigir_coord)
+
+# =========================
+# 🧠 LOCALIZAÇÃO (KNN)
+# =========================
+df_hist_validos = df_hist.dropna(subset=["Latitude_corrigida", "Longitude_corrigida"]).copy()
+
+coords_hist = np.radians(
+    df_hist_validos[["Latitude_corrigida", "Longitude_corrigida"]].values
+)
+
+dist, ind = tree.query(coords_hist, k=1)
+
+df_hist_validos["Localização Atual"] = df_cidades.iloc[ind.flatten()]["Localização Atual"].values
+
+df_hist = df_hist.merge(
+    df_hist_validos[["Placa", "Posição", "Localização Atual"]],
+    on=["Placa", "Posição"],
+    how="left"
+)
+
+# =========================
+# 🧠 CÁLCULO DE PARADA
+# =========================
 df_hist = df_hist.sort_values(by=["Placa", "Posição"])
 
-# cidade alvo
 cidade_alvo = "SAO JOAO DE MERITI-RJ"
 
-# filtra apenas cidade
 df_hist["Cidade_Alvo"] = df_hist["Localização Atual"] == cidade_alvo
 
-# shift para pegar próxima linha da mesma placa
 df_hist["Prox_Posicao"] = df_hist.groupby("Placa")["Posição"].shift(-1)
-df_hist["Prox_Cidade"] = df_hist.groupby("Placa")["Cidade_Alvo"].shift(-1)
-
-# calcula duração
 df_hist["Tempo"] = (df_hist["Prox_Posicao"] - df_hist["Posição"]).dt.total_seconds() / 3600
 
-# pega apenas períodos dentro da cidade
 df_paradas = df_hist[
     (df_hist["Cidade_Alvo"] == True) &
     (df_hist["Tempo"].notna()) &
     (df_hist["Tempo"] > 0)
 ]
 
-# média de tempo
+# =========================
+# 📊 RESULTADOS
+# =========================
 media_tempo = df_paradas["Tempo"].mean()
-
-# quantidade de ocorrências
 qtd_paradas = len(df_paradas)
-
 # =========================
 # 🔽 BASE PV (BUCKET)
 # =========================
