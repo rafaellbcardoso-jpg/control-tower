@@ -315,7 +315,7 @@ df_hist["Tempo"] = (df_hist["Prox_Posicao"] - df_hist["Posição"]).dt.total_sec
 df_paradas = df_hist[
     (df_hist["Cidade_Alvo"] == True) &
     (df_hist["Tempo"].notna()) &
-    (df_hist["Tempo"] > 0)
+    (df_hist["Tempo"] > 10)
 ]
 
 # =========================
