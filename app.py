@@ -1010,6 +1010,31 @@ with col4:
         <div class="sub">Usados -2 dias</div>
     </div>
     """, unsafe_allow_html=True)
+
+# =========================
+# 🚨 CARDS - PARADA SJM
+# =========================
+
+col_sjm1, col_sjm2 = st.columns(2)
+
+with col_sjm1:
+    st.markdown(f"""
+    <div class="card total">
+        <div class="titulo">📍 SJM - Média Parado</div>
+        <div class="valor">{media_tempo:.1f}h</div>
+        <div class="sub">Tempo médio histórico</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_sjm2:
+    st.markdown(f"""
+    <div class="card total">
+        <div class="titulo">🚛 SJM - Ocorrências</div>
+        <div class="valor">{qtd_paradas}</div>
+        <div class="sub">Total de paradas</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
 # =========================
 # 📊 DONUT - PROGRAMAÇÃO HOJE (COM COR)
 # =========================
