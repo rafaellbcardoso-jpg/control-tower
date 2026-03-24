@@ -358,7 +358,7 @@ if not df_pv.empty:
 # 🔽 BASE WR (PROGRAMAÇÃO FUTURA)
 # =========================
 
-blobs_wr = list(bucket.list_blobs(prefix="wr/"))
+blobs_wr = list(bucket.list_blobs(prefix="basewr/"))
 
 dfs_wr = []
 
