@@ -1153,6 +1153,35 @@ st.subheader("🚛 - Frota Lemar")
 
 st.dataframe(df_frota, use_container_width=True)
 
+# =========================
+# 🔗 SINERGIA FROTA (PV x WR)
+# =========================
+
+df_sinergia = df.copy()
+
+# merge PV (df) com WR
+df_sinergia = df_sinergia.merge(
+    df_wr[["Placas_clean", "Data"]],
+    left_on="Placa_clean",
+    right_on="Placas_clean",
+    how="left"
+)
+
+# organiza colunas
+df_sinergia = df_sinergia[[
+    "Placa",
+    "Motorista",
+    "Localização Atual",
+    "Programação",
+    "Data"  # data da WR
+]]
+
+# =========================
+# 📊 TABELA
+# =========================
+st.subheader("🔗 Sinergia Frota")
+
+st.dataframe(df_sinergia, use_container_width=True)
 
 # =========================
 # 📊 TABELA
