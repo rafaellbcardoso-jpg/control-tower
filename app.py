@@ -385,6 +385,28 @@ if not df_wr.empty:
         .str.replace("-", "", regex=False)
     )
 
+###ADICIONADO 26.03 - 09:37###
+# =========================
+# 🧠 WR - USAR ETA COMO DATA
+# =========================
+
+if not df_wr.empty:
+    df_wr["Data"] = pd.to_datetime(df_wr["ETA"], errors="coerce")
+
+###ADICIONADO 26.03 - 09:37###
+# =========================
+# 🧠 WR - PRIMEIRA DATA POR PLACA
+# =========================
+
+if not df_wr.empty:
+    df_wr_agg = (
+        df_wr
+        .sort_values("Data", ascending=True)
+        .drop_duplicates(subset="Placas_clean")
+    )
+else:
+    df_wr_agg = pd.DataFrame()
+
 # =========================
 # 🔧 NORMALIZAR OMNI
 # =========================
@@ -1161,7 +1183,7 @@ df_sinergia = df.copy()
 
 # merge PV (df) com WR
 df_sinergia = df_sinergia.merge(
-    df_wr[["Placas_clean", "Data"]],
+    df_wr_agg[["Placas_clean", "Data"]],
     left_on="Placa_clean",
     right_on="Placas_clean",
     how="left"
