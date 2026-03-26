@@ -323,7 +323,6 @@ df_paradas = df_hist[
 # =========================
 media_tempo = df_paradas["Tempo"].mean()
 qtd_paradas = len(df_paradas)
-
 # =========================
 # 🔽 BASE PV (BUCKET)
 # =========================
@@ -353,59 +352,6 @@ if not df_pv.empty:
         .str.upper()
         .str.replace("-", "", regex=False)
     )
-
-# =========================
-# 🔽 BASE WR (PROGRAMAÇÃO FUTURA)
-# =========================
-
-blobs_wr = list(bucket.list_blobs(prefix="basewr/"))
-
-dfs_wr = []
-
-for blob in blobs_wr:
-    if blob.name.endswith(".csv"):
-        content = blob.download_as_bytes()
-        df_temp = pd.read_csv(BytesIO(content))
-        dfs_wr.append(df_temp)
-
-# 🔒 garante que df_wr sempre existe
-df_wr = pd.DataFrame()
-
-if dfs_wr:
-    df_wr = pd.concat(dfs_wr, ignore_index=True)
-
-# =========================
-# 🔧 NORMALIZAR WR (MESMO PADRÃO PV)
-# =========================
-if not df_wr.empty:
-    df_wr["Placas_clean"] = (
-        df_wr["PLACA"]
-        .astype(str)
-        .str.upper()
-        .str.replace("-", "", regex=False)
-    )
-
-###ADICIONADO 26.03 - 09:37###
-# =========================
-# 🧠 WR - USAR ETA COMO DATA
-# =========================
-
-if not df_wr.empty:
-    df_wr["Data"] = pd.to_datetime(df_wr["ETA"], errors="coerce")
-
-###ADICIONADO 26.03 - 09:37###
-# =========================
-# 🧠 WR - PRIMEIRA DATA POR PLACA
-# =========================
-
-if not df_wr.empty:
-    df_wr_agg = (
-        df_wr
-        .sort_values("Data", ascending=True)
-        .drop_duplicates(subset="Placas_clean")
-    )
-else:
-    df_wr_agg = pd.DataFrame()
 
 # =========================
 # 🔧 NORMALIZAR OMNI
@@ -1175,46 +1121,6 @@ st.subheader("🚛 - Frota Lemar")
 
 st.dataframe(df_frota, use_container_width=True)
 
-# =========================
-# 🔗 SINERGIA FROTA (PV x WR)
-# =========================
-
-df_sinergia = df.copy()
-
-# merge PV (df) com WR
-df_sinergia = df_sinergia.merge(
-    df_wr_agg[["Placas_clean", "Data"]],
-    left_on="Placa_clean",
-    right_on="Placas_clean",
-    how="left"
-)
-
-# organiza colunas
-df_sinergia = df_sinergia[[
-    "Placa",
-    "Motorista",
-    "Localização Atual",
-    "Programação",
-    "Data"  # data da WR
-]]
-##26.03-09:45##
-# =========================
-# 🔧 RECRIAR PLACA CLEAN (PARA SINERGIA)
-# =========================
-
-df["Placa_clean"] = (
-    df["Placa"]
-    .astype(str)
-    .str.upper()
-    .str.replace(r"[^A-Z0-9]", "", regex=True)
-)
-
-# =========================
-# 📊 TABELA
-# =========================
-st.subheader("🔗 Sinergia Frota")
-
-st.dataframe(df_sinergia, use_container_width=True)
 
 # =========================
 # 📊 TABELA
