@@ -1197,6 +1197,17 @@ df_sinergia = df_sinergia[[
     "Programação",
     "Data"  # data da WR
 ]]
+##26.03-09:45##
+# =========================
+# 🔧 RECRIAR PLACA CLEAN (PARA SINERGIA)
+# =========================
+
+df["Placa_clean"] = (
+    df["Placa"]
+    .astype(str)
+    .str.upper()
+    .str.replace(r"[^A-Z0-9]", "", regex=True)
+)
 
 # =========================
 # 📊 TABELA
