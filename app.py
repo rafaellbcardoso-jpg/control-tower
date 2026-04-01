@@ -821,7 +821,7 @@ df_frota = df_frota.merge(
     how="left",
     suffixes=("", "_drop")
 )
-
+df_frota = df_frota.drop(columns=["Placa"], errors="ignore")
 # =========================
 # 🔗 MERGE OPERACAO
 # =========================
@@ -832,6 +832,7 @@ df_frota = df_frota.merge(
     how="left",
     suffixes=("", "_drop")
 )
+df_frota = df_frota.drop(columns=["Placa"], errors="ignore")
 # =========================
 # 🔗 MERGE PROGRAMACAO
 # =========================
@@ -842,7 +843,7 @@ df_frota = df_frota.merge(
     how="left",
     suffixes=("", "_drop")
 )
-
+df_frota = df_frota.drop(columns=["Placa"], errors="ignore")
 # =========================
 # 🔗 MERGE ROTA
 # =========================
@@ -853,7 +854,7 @@ df_frota = df_frota.merge(
     how="left",
     suffixes=("", "_drop")
 )
-
+df_frota = df_frota.drop(columns=["Placa"], errors="ignore")
 # =========================
 # 🔗 MERGE ANDAMENTO
 # =========================
@@ -864,7 +865,7 @@ df_frota = df_frota.merge(
     how="left",
     suffixes=("", "_drop")
 )
-
+df_frota = df_frota.drop(columns=["Placa"], errors="ignore")
 # =========================
 # 🔗 MERGE MOTORISTA
 # =========================
@@ -875,6 +876,7 @@ df_frota = df_frota.merge(
     how="left",
     suffixes=("", "_drop")
 )
+df_frota = df_frota.drop(columns=["Placa"], errors="ignore")
 # =========================
 # 🔗 MERGE LOCALIZACAO
 # =========================
@@ -885,6 +887,7 @@ df_frota = df_frota.merge(
     how="left",
     suffixes=("", "_drop")
 )
+df_frota = df_frota.drop(columns=["Placa"], errors="ignore")
 
 df_frota = df_frota.drop(columns=[col for col in df_frota.columns if "_drop" in col], errors="ignore")
 
